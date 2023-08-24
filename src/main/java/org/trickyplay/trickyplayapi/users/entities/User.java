@@ -1,11 +1,13 @@
 package org.trickyplay.trickyplayapi.users.entities;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import org.trickyplay.trickyplayapi.auth.entities.RefreshToken;
 import org.trickyplay.trickyplayapi.auth.enums.Role;
+import org.trickyplay.trickyplayapi.comments.entities.Comment;
+import org.trickyplay.trickyplayapi.replies.entities.Reply;
 
 import jakarta.persistence.*;
 
@@ -34,11 +36,11 @@ public class User {
     @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<RefreshToken> refreshTokens;
 
-//    @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-//    private List<Comment> comments;
-//
-//    @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-//    private List<Reply> replies;
+    @OneToMany(mappedBy = "author", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Comment> comments;
+
+    @OneToMany(mappedBy = "author", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Reply> replies;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
