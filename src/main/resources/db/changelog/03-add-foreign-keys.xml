@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+    <changeSet author="basior" id="31">
+        <addForeignKeyConstraint baseColumnNames="author_user_id" baseTableName="comments"
+                                 constraintName="comments_users " deferrable="false" initiallyDeferred="false"
+                                 onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id"
+                                 referencedTableName="users" validate="true"/>
+        <!--    ALTER TABLE comments ADD CONSTRAINT comments_users FOREIGN KEY (author_user_id) REFERENCES users (id) ON UPDATE RESTRICT ON DELETE RESTRICT;-->
+    </changeSet>
+
+    <changeSet author="basior" id="32">
+        <addForeignKeyConstraint baseColumnNames="owner_user_id" baseTableName="refresh_tokens"
+                                 constraintName="refresh_tokens_users" deferrable="false" initiallyDeferred="false"
+                                 onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id"
+                                 referencedTableName="users" validate="true"/>
+        <!--    ALTER TABLE refresh_tokens ADD CONSTRAINT refresh_tokens_users FOREIGN KEY (user_id) REFERENCES users (id) ON UPDATE RESTRICT ON DELETE RESTRICT;-->
+    </changeSet>
+
+    <changeSet author="basior" id="33">
+        <addForeignKeyConstraint baseColumnNames="author_user_id" baseTableName="replies"
+                                 constraintName="replies_users" deferrable="false" initiallyDeferred="false"
+                                 onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id"
+                                 referencedTableName="users" validate="true"/>
+        <!--    ALTER TABLE replies ADD CONSTRAINT replies_users FOREIGN KEY (author_user_id) REFERENCES users (id) ON UPDATE RESTRICT ON DELETE RESTRICT;-->
+    </changeSet>
+
+    <changeSet author="basior" id="34">
+        <addForeignKeyConstraint baseColumnNames="parent_comment_id" baseTableName="replies"
+                                 constraintName="replies_comments" deferrable="false" initiallyDeferred="false"
+                                 onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id"
+                                 referencedTableName="comments" validate="true"/>
+        <!--    ALTER TABLE replies ADD CONSTRAINT replies_comments FOREIGN KEY (parent_comment_id) REFERENCES comments (id) ON UPDATE RESTRICT ON DELETE RESTRICT;-->
+    </changeSet>
+</databaseChangeLog>

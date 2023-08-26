@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+
+    <changeSet author="basior" id="11">
+        <createTable tableName="comments">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="author_user_id" type="BIGINT"/>
+            <column name="body" type="VARCHAR(255)"/>
+            <column name="game_name" type="VARCHAR(255)"/>
+            <column name="created_at" type="datetime"/>
+            <column name="updated_at" type="datetime"/>
+        </createTable>
+        <!-- CREATE TABLE comments (id BIGINT AUTO_INCREMENT NOT NULL, body VARCHAR(255) NULL, created_at datetime NULL, game_name VARCHAR(255) NULL, updated_at datetime NULL, author_user_id BIGINT NULL, CONSTRAINT PK_COMMENTS PRIMARY KEY (id)); -->
+    </changeSet>
+
+    <changeSet author="basior" id="12">
+        <createTable tableName="refresh_tokens">
+            <column autoIncrement="true" name="id" type="INT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="expired" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expiry_date" type="datetime"/>
+            <column name="revoked" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token" type="VARCHAR(255)">
+                <constraints unique="true"/>
+            </column>
+            <column name="owner_user_id" type="BIGINT"/>
+        </createTable>
+        <!-- CREATE TABLE refresh_tokens (id INT AUTO_INCREMENT NOT NULL, expired BIT(1) NOT NULL, expiry_date datetime NULL, revoked BIT(1) NOT NULL, token VARCHAR(255) NULL, owner_user_id BIGINT NULL, CONSTRAINT PK_REFRESH_TOKENS PRIMARY KEY (id), UNIQUE (token));-->
+    </changeSet>
+
+    <changeSet author="basior" id="13">
+        <createTable tableName="replies">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="body" type="VARCHAR(255)"/>
+            <column name="created_at" type="datetime"/>
+            <column name="updated_at" type="datetime"/>
+            <column name="author_user_id" type="BIGINT"/>
+            <column name="parent_comment_id" type="BIGINT"/>
+        </createTable>
+        <!-- CREATE TABLE replies (id BIGINT AUTO_INCREMENT NOT NULL, body VARCHAR(255) NULL, created_at datetime NULL, updated_at datetime NULL, author_user_id BIGINT NULL, parent_comment_id BIGINT NULL, CONSTRAINT PK_REPLIES PRIMARY KEY (id));-->
+    </changeSet>
+
+    <changeSet author="basior" id="14">
+        <createTable tableName="users">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="created_at" type="datetime"/>
+            <column name="name" type="VARCHAR(32)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="roles" type="ENUM('ADMIN', 'BANNED', 'USER')"/>
+            <column name="updated_at" type="datetime"/>
+        </createTable>
+        <!--    CREATE TABLE users (id BIGINT AUTO_INCREMENT NOT NULL, created_at datetime NULL, name VARCHAR(32) NOT NULL, password VARCHAR(64) NOT NULL, roles ENUM('ADMIN', 'BANNED', 'USER') NULL, updated_at datetime NULL, CONSTRAINT PK_USERS PRIMARY KEY (id), UNIQUE (name));-->
+    </changeSet>
+
+</databaseChangeLog>

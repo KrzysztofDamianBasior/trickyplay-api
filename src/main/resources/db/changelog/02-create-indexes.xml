@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+
+    <changeSet author="basior" id="21">
+        <createIndex indexName="comments_users" tableName="comments">
+            <column name="author_user_id"/>
+        </createIndex>
+        <!--    CREATE INDEX comments_users ON comments(author_user_id);-->
+    </changeSet>
+
+    <changeSet author="basior" id="22">
+        <createIndex indexName="refresh_tokens_users" tableName="refresh_tokens">
+            <column name="owner_user_id"/>
+        </createIndex>
+        <!--    CREATE INDEX refresh_tokens_users ON refresh_tokens(user_id);-->
+    </changeSet>
+
+    <changeSet author="basior" id="23">
+        <createIndex indexName="replies_users" tableName="replies">
+            <column name="author_user_id"/>
+        </createIndex>
+        <!--    CREATE INDEX replies_users ON replies(author_user_id);-->
+    </changeSet>
+
+    <changeSet author="basior" id="24">
+        <createIndex indexName="replies_comments" tableName="replies">
+            <column name="parent_comment_id"/>
+        </createIndex>
+        <!--    CREATE INDEX replies_comments ON replies(parent_comment_id);-->
+    </changeSet>
+</databaseChangeLog>

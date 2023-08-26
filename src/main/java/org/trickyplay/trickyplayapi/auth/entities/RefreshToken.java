@@ -29,7 +29,7 @@ public class RefreshToken {
     public boolean expired;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "owner_user_id", referencedColumnName = "id")
     public User user;
     private Instant expiryDate;
 }

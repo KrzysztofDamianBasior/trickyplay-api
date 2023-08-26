@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+
+    <!-- alternatively <includeAll path="changelog"/> -->
+    <include file="changelog/01-create-schemas.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/02-create-indexes.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/03-add-foreign-keys.xml" relativeToChangelogFile="true"/>
+</databaseChangeLog>
