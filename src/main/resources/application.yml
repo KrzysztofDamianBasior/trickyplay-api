@@ -18,3 +18,11 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
 server:
   port: 9000
+  error:
+    include-stacktrace: never # Despite NEVER being the default for server.error.include-stacktrace, if you include Spring Boot DevTools it overides to ALWAYS. If you update application.yml (or application.properties) to specify NEVER Spring Boot DevTools will respect it
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      refresh-token-expiration: ${REFRESH_TOKEN_EXPIRATION}
+      access-token-expiration: ${ACCESS_TOKEN_EXPIRATION}
