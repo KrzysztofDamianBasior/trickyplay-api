@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.trickyplay.trickyplayapi.comments.entities.Comment;
-import org.trickyplay.trickyplayapi.users.entities.User;
+import org.trickyplay.trickyplayapi.users.entities.TPUser;
 
 import jakarta.persistence.*;
 
@@ -25,7 +25,7 @@ public class Reply {
     private String body;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_user_id", referencedColumnName = "id")
-    private User author;
+    private TPUser author;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_comment_id", referencedColumnName = "id")
     private Comment parentComment;

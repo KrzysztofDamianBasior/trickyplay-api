@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.trickyplay.trickyplayapi.replies.entities.Reply;
-import org.trickyplay.trickyplayapi.users.entities.User;
+import org.trickyplay.trickyplayapi.users.entities.TPUser;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,7 +26,7 @@ public class Comment {
     private String body;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_user_id", referencedColumnName = "id")
-    private User author;
+    private TPUser author;
     @OneToMany(mappedBy = "parentComment", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Reply> replies;
     private String gameName;

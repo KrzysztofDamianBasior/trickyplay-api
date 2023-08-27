@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Integer> {
     @Query(value = """  
                  select t from RefreshToken t
-                 inner join User u on t.user.id = u.id
+                 inner join TPUser u on t.owner.id = u.id
                  where u.id = :id and (t.expired = false or t.revoked = false)
             """)
     List<RefreshToken> findAllValidTokensByUser(Integer id);

@@ -18,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "Users")
-public class User {
+public class TPUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,7 +32,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role roles;
 
-    @OneToMany(mappedBy = "user", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "owner", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<RefreshToken> refreshTokens;
 
     @OneToMany(mappedBy = "author", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)

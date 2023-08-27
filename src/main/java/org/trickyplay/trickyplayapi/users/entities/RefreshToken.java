@@ -28,6 +28,6 @@ public class RefreshToken {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_user_id", referencedColumnName = "id")
-    public User user;
+    public TPUser owner;
     private Instant expiryDate;
 }
