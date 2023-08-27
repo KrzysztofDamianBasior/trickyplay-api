@@ -1,6 +1,4 @@
-package org.trickyplay.trickyplayapi.auth.entities;
-
-import org.trickyplay.trickyplayapi.users.entities.User;
+package org.trickyplay.trickyplayapi.users.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

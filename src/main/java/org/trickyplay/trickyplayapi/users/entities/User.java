@@ -4,8 +4,7 @@ import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-import org.trickyplay.trickyplayapi.auth.entities.RefreshToken;
-import org.trickyplay.trickyplayapi.auth.enums.Role;
+import org.trickyplay.trickyplayapi.users.enums.Role;
 import org.trickyplay.trickyplayapi.comments.entities.Comment;
 import org.trickyplay.trickyplayapi.replies.entities.Reply;
 

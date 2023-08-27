@@ -1,15 +1,17 @@
 package org.trickyplay.trickyplayapi.comments.entities;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.trickyplay.trickyplayapi.replies.entities.Reply;
 import org.trickyplay.trickyplayapi.users.entities.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import jakarta.persistence.*;
 
 @Entity
 @Data

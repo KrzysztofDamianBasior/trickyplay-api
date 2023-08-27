@@ -1,4 +1,4 @@
-package org.trickyplay.trickyplayapi.auth.enums;
+package org.trickyplay.trickyplayapi.users.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -10,15 +10,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.trickyplay.trickyplayapi.auth.enums.Permission.ADMIN_READ;
-import static org.trickyplay.trickyplayapi.auth.enums.Permission.ADMIN_UPDATE;
-import static org.trickyplay.trickyplayapi.auth.enums.Permission.ADMIN_CREATE;
-import static org.trickyplay.trickyplayapi.auth.enums.Permission.ADMIN_DELETE;
+import static org.trickyplay.trickyplayapi.users.enums.Permission.ADMIN_READ;
+import static org.trickyplay.trickyplayapi.users.enums.Permission.ADMIN_UPDATE;
+import static org.trickyplay.trickyplayapi.users.enums.Permission.ADMIN_CREATE;
+import static org.trickyplay.trickyplayapi.users.enums.Permission.ADMIN_DELETE;
 
-import static org.trickyplay.trickyplayapi.auth.enums.Permission.USER_READ;
-import static org.trickyplay.trickyplayapi.auth.enums.Permission.USER_UPDATE;
-import static org.trickyplay.trickyplayapi.auth.enums.Permission.USER_CREATE;
-import static org.trickyplay.trickyplayapi.auth.enums.Permission.USER_DELETE;
+import static org.trickyplay.trickyplayapi.users.enums.Permission.USER_READ;
+import static org.trickyplay.trickyplayapi.users.enums.Permission.USER_UPDATE;
+import static org.trickyplay.trickyplayapi.users.enums.Permission.USER_CREATE;
+import static org.trickyplay.trickyplayapi.users.enums.Permission.USER_DELETE;
 @RequiredArgsConstructor
 public enum Role {
         BANNED(Collections.emptySet()),

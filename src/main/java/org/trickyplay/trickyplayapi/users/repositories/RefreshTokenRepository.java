@@ -1,6 +1,6 @@
-package org.trickyplay.trickyplayapi.auth.repositories;
+package org.trickyplay.trickyplayapi.users.repositories;
 
-import org.trickyplay.trickyplayapi.auth.entities.RefreshToken;
+import org.trickyplay.trickyplayapi.users.entities.RefreshToken;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

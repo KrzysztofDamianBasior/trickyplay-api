@@ -1,4 +1,4 @@
-package org.trickyplay.trickyplayapi.auth.enums;
+package org.trickyplay.trickyplayapi.users.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
