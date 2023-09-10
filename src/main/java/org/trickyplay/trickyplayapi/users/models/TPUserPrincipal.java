@@ -1,47 +1,60 @@
 package org.trickyplay.trickyplayapi.users.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.trickyplay.trickyplayapi.users.entities.TPUser;
+import org.trickyplay.trickyplayapi.users.enums.Role;
 
 import java.util.Collection;
 
 @Data
-@Builder
 public class TPUserPrincipal implements UserDetails {
-    private TPUser user;
+    private final Long id;
+    private final String name;
+    @JsonIgnore     // protects against accidental serialization of a sensitive field
+    private final String password;
 
-    // private final String name;
-    // @JsonIgnore
-    // private final String password;
-    // private final List<GrantedAuthority> authorities;
+    private final Role role;
+//  alternatively- private final List<GrantedAuthority> authorities;
 
+    @Builder
+    public TPUserPrincipal(Long id, String name, String password, String role) {
+        this.id = id;
+        this.role = Role.valueOf(role); // that the name must be an exact match, or else it throws an IllegalArgumentException
+        this.name = name;
+        this.password = password;
+    }
+
+    @Builder
     public TPUserPrincipal(TPUser user) {
-        this.user = user;
+        this.name = user.getName();
+        this.password = user.getPassword();
+        this.role = user.getRole();
+        this.id = user.getId();
 
-        // private String roles; if we stored the roles in a comma-separated string
-        // authorities = Arrays.stream(user.getRoles().split(","))
+        // if we kept the roles in a comma-separated string
+        // this.authorities = Arrays.stream(user.getRoles().split(","))
         //         .map(SimpleGrantedAuthority::new)
         //         .collect(Collectors.toList());
-        // but we store roles in an enum
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return user.getRoles().getAuthorities();
+        return this.role.getAuthorities();
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return this.password;
     }
 
     @Override
     public String getUsername() {
-        return user.getName();
+        return this.name;
     }
 
     @Override

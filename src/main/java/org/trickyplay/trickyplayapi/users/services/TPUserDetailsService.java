@@ -18,20 +18,13 @@ public class TPUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        // UsernameNotFoundException which is a subclass of AuthenticationException is thrown during authenticaton
+        // UsernameNotFoundException which is a subclass of AuthenticationException can be thrown during authentication
         TPUser user = userRepository.findByName(username).orElseThrow(() -> new UsernameNotFoundException(username));
         return new TPUserPrincipal(user);
+    }
 
-        // UserDetails user =
-        //         User.withUsername(customer.getEmail()).password(customer.getPassword()).authorities("USER").build();
-        // return user;
-        //
-
-        // return TPUserPrincipal.builder()
-        //        .userId(user.getId())
-        //        .email(user.getEmail())
-        //        .password(user.getPassword())
-        //        .authorities(List.of(new SimpleGrantedAuthority(user.getRole())))
-        //        .build();
+    public UserDetails loadUserById(Long id) {
+        TPUser user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("user with id: " + id));
+        return new TPUserPrincipal(user);
     }
 }
