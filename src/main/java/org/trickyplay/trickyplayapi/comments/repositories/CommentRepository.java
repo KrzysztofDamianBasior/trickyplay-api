@@ -2,9 +2,9 @@ package org.trickyplay.trickyplayapi.comments.repositories;
 
 import org.trickyplay.trickyplayapi.comments.entities.Comment;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 
-import java.awt.print.Pageable;
 import java.util.List;
 
 public interface CommentRepository {

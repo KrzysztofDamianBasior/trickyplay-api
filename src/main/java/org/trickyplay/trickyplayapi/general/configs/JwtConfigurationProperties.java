@@ -5,7 +5,9 @@ package org.trickyplay.trickyplayapi.general.configs;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+
 import lombok.Data;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -17,11 +19,9 @@ public class JwtConfigurationProperties {
     @NotBlank
     private String secretKey;
 
-    @NotBlank
-    @Pattern(regexp = "^\\d+$") // digits only
+    @NotBlank @Pattern(regexp = "^\\d+$") // digits only
     private String refreshTokenExpiration;
 
-    @NotBlank
-    @Pattern(regexp = "^\\d+$") // digits only
+    @NotBlank @Pattern(regexp = "^\\d+$") // digits only
     private String accessTokenExpiration;
 }

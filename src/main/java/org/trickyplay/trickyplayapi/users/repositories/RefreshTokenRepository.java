@@ -12,9 +12,9 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Inte
     @Query(value = """  
                  select t from RefreshToken t
                  inner join TPUser u on t.owner.id = u.id
-                 where u.id = :id and (t.expired = false or t.revoked = false)
+                 where u.id = :id and (t.revoked = false)
             """)
-    List<RefreshToken> findAllValidTokensByUser(Integer id);
+    List<RefreshToken> findAllValidTokensByUser(Long id);
 
     Optional<RefreshToken> findByToken(String token);
 }

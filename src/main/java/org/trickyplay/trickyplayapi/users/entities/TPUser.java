@@ -1,7 +1,8 @@
 package org.trickyplay.trickyplayapi.users.entities;
 
-import lombok.Data;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.trickyplay.trickyplayapi.users.enums.Role;
@@ -17,6 +18,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "Users")
 public class TPUser {
     @Id
@@ -30,7 +32,7 @@ public class TPUser {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private Role roles;
+    private Role role;
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<RefreshToken> refreshTokens;
@@ -42,5 +44,6 @@ public class TPUser {
     private List<Reply> replies;
 
     private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
 }

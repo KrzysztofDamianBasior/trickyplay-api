@@ -23,13 +23,19 @@ public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String body;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_user_id", referencedColumnName = "id")
     private TPUser author;
+
     @OneToMany(mappedBy = "parentComment", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Reply> replies;
+
     private String gameName;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+
+    private LocalDateTime createdAt; //ISO-8601 UTC
+
+    private LocalDateTime updatedAt; //ISO-8601 UTC
 }
