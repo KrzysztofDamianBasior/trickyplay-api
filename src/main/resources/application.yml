@@ -1,28 +1,36 @@
 spring:
   liquibase:
     change-log: classpath:db/liquibase-changeLog.xml
+#    enabled: false
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false
-    username: ${MYSQL_USERNAME}
-    password: ${MYSQL_PASSWORD}
+    url: jdbc:mysql://${DEFAULT_MYSQL_HOST}:${DEFAULT_MYSQL_PORT}/${DEFAULT_MYSQL_DATABASE}?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false
+    username: ${DEFAULT_MYSQL_USERNAME}
+    password: ${DEFAULT_MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+#  profiles:
+#    active=dev: # a flag with information about which profile should be launched, in the case of this application it is unnecessary because the profile is set from the parameters passed in VM options, for example: -Dspring.profiles.active=dev
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
-    generate-ddl: true
+#    generate-ddl: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
+#        dialect: org.hibernate.dialect.MySQL8Dialect
 server:
-  port: 9000
+  port: ${DEFAULT_APPLICATION_PORT}
   error:
-    include-stacktrace: never # Despite NEVER being the default for server.error.include-stacktrace, if you include Spring Boot DevTools it overides to ALWAYS. If you update application.yml (or application.properties) to specify NEVER Spring Boot DevTools will respect it
+    # Despite NEVER being the default for server.error.include-stacktrace, if you include Spring Boot DevTools it overides to ALWAYS. If you update application.yml (or application.properties) to specify NEVER Spring Boot DevTools will respect it
+    include-stacktrace: never
 application:
   security:
     jwt:
-      secret-key: ${JWT_SECRET_KEY}
-      refresh-token-expiration: ${REFRESH_TOKEN_EXPIRATION}
-      access-token-expiration: ${ACCESS_TOKEN_EXPIRATION}
+      # ref: https://github.com/jwtk/jjwt#jwt-payload
+      # the JWT specification RFC 7518, Sections 3.2 through 3.5 requires (mandates) that you MUST use keys that are sufficiently strong for a chosen algorithm. This means that JJWT - a specification-compliant library - will also enforce that you use sufficiently strong keys for the algorithms you choose. If you provide a weak key for a given algorithm, JJWT will reject it and throw an exception.
+      # JWT HMAC-SHA signature algorithms HS256, HS384, and HS512 require a secret key that is at least as many bits as the algorithm's signature (digest) length per RFC 7512 Section 3.2.
+      # HS256 is HMAC-SHA-256, and that produces digests that are 256 bits (32 bytes) long, so HS256 requires that you use a secret key that is at least 32 bytes long.
+      secret-key: ${DEFAULT_JWT_SECRET_KEY}
+      refresh-token-expiration: ${DEFAULT_REFRESH_TOKEN_EXPIRATION} # [ms]
+      access-token-expiration: ${DEFAULT_ACCESS_TOKEN_EXPIRATION} # [ms]
