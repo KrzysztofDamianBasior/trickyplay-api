@@ -78,7 +78,12 @@ public class JwtService {
     public TPUserPrincipal extractPrincipal(String token) {
         final Claims claims = extractAllClaims(token);
 
-        return TPUserPrincipal.builder().id(Long.parseLong(claims.getSubject())).name((String) claims.get("userName")).password(null).role((String) claims.get("userRole")).build();
+        return TPUserPrincipal.builder()
+                .id(Long.parseLong(claims.getSubject()))
+                .name((String) claims.get("userName"))
+                .password(null)
+                .role((String) claims.get("userRole"))
+                .build();
     }
 
     public String issueToken(TPUserPrincipal userDetails) {
@@ -127,10 +132,11 @@ public class JwtService {
         return Jwts.builder().setClaims(extraClaims)
                 // .setIssuer()
                 // .setAudience()
+                // .setSubject(String.format("%s,%s", user.getId(), user.getName()))
                 // .setId(UUID.randomUUID().toString()) //not needed for now
                 .setSubject(userDetails.getUsername()) //userDetails.getUsername() actually returns the id not the username, the name is a bit unfortunate
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setIssuedAt(new Date(System.currentTimeMillis())) // Instant.now()
+                .setExpiration(new Date(System.currentTimeMillis() + expiration)) // Instant.now().plusMillis(expiration) or Instant.now().toEpochMilli() + expiration
                 .claim("hello", "world")
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .addClaims(rolesClaim).compact();

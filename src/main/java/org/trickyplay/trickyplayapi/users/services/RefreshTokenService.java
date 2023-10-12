@@ -3,10 +3,11 @@ package org.trickyplay.trickyplayapi.users.services;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.trickyplay.trickyplayapi.general.exceptions.UserNotFoundException;
 import org.trickyplay.trickyplayapi.users.entities.RefreshToken;
 import org.trickyplay.trickyplayapi.users.entities.TPUser;
@@ -23,9 +24,7 @@ import java.util.UUID;
 public class RefreshTokenService {
     @Value("${application.security.jwt.refresh-token-expiration}")
     private long refreshExpiration;
-    @Autowired
     private final RefreshTokenRepository refreshTokenRepository;
-    @Autowired
     private final TPUserRepository userRepository;
 
     public RefreshToken createAndSaveRefreshToken(String username) {
@@ -48,6 +47,7 @@ public class RefreshTokenService {
         return refreshTokenRepository.save(refreshToken);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public RefreshToken createAndSaveRefreshToken(TPUser owner) {
         RefreshToken refreshToken = RefreshToken.builder()
                 .owner(owner)
@@ -76,12 +76,19 @@ public class RefreshTokenService {
         return token.getExpiryDate().compareTo(Instant.now()) < 0 || token.isRevoked();
     }
 
-    public void revokeAllUserTokens(TPUser user) {
+    /**
+     * Revoke all refresh tokens belonging to the user whose data is provided in the argument
+     * @param user
+     * @return returns the number of revoked tokens
+     */
+    public int revokeAllUserTokens(TPUser user) {
         var validUserTokens = refreshTokenRepository.findAllValidTokensByUser(user.getId());
-        if (validUserTokens.isEmpty()) return;
+        if (validUserTokens.isEmpty()) return 0;
 
-        validUserTokens.forEach(token -> token.setRevoked(true));
+        validUserTokens.forEach(token -> {
+            token.setRevoked(true);
+        });
         refreshTokenRepository.saveAll(validUserTokens);
+        return validUserTokens.size();
     }
 }
-

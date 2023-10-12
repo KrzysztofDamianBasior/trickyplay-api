@@ -1,6 +1,7 @@
 package org.trickyplay.trickyplayapi.users.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -8,13 +9,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import org.trickyplay.trickyplayapi.general.exceptions.UserNotFoundException;
-import org.trickyplay.trickyplayapi.users.dtos.RefreshTokenRequest;
-import org.trickyplay.trickyplayapi.users.dtos.RefreshTokenResponse;
-import org.trickyplay.trickyplayapi.users.dtos.RegisterRequest;
-import org.trickyplay.trickyplayapi.users.dtos.SignInResponse;
+import org.trickyplay.trickyplayapi.users.dtos.*;
 import org.trickyplay.trickyplayapi.users.entities.TPUser;
 import org.trickyplay.trickyplayapi.users.enums.Role;
 import org.trickyplay.trickyplayapi.users.models.TPUserPrincipal;
@@ -22,9 +21,11 @@ import org.trickyplay.trickyplayapi.users.repositories.RefreshTokenRepository;
 import org.trickyplay.trickyplayapi.users.repositories.TPUserRepository;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final TPUserRepository userRepository;
@@ -34,7 +35,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public SignInResponse login(String username, String password) {
+    public SignInResponse signIn(SignInRequest signInRequest) {
         // ref: https://docs.spring.io/spring-security/site/docs/3.0.x/reference/technical-overview.html
         // ref: https://docs.spring.io/spring-security/reference/servlet/authentication/architecture.html
         // 1. The username and password are obtained and combined into an instance of UsernamePasswordAuthenticationToken
@@ -52,7 +53,7 @@ public class AuthenticationService {
         // 3. authorities: The GrantedAuthority instances are high-level permissions the user is granted. Two examples are roles and scopes. You can obtain GrantedAuthority instances from the Authentication.getAuthorities() method. This method provides a Collection of GrantedAuthority objects.
 
         // let's use an authentication manager to authenticate the user
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signInRequest.getUsername(), signInRequest.getPassword()));
         // Spring Security does not care what type of Authentication implementation is set on the SecurityContext. Here, we use UsernamePasswordAuthenticationToken  - UsernamePasswordAuthenticationToken(userDetails, password, authorities).
         SecurityContextHolder.getContext().setAuthentication(authentication); // according to docs- https://docs.spring.io/spring-security/reference/servlet/authentication/architecture.html -now we set the SecurityContext on the SecurityContextHolder. Spring Security uses this information for authorization.
 
@@ -79,63 +80,110 @@ public class AuthenticationService {
         //   LOGGER.warn("auth error:{}", e.getMessage());
         // }
         // passwordEncoder.encodePassword(password, null);
-        // if (authentication.isAuthenticated())
+
+//        if (authentication.isAuthenticated()) {
+//        } else {
+//            throw new UsernameNotFoundException("invalid user request !");
+//        }
+
         // TPUserPrincipal principal = userDetailsService.loadUserByUsername(username);
         var principal = (TPUserPrincipal) authentication.getPrincipal();
-        String accessToken = jwtService.issueToken(principal);
-        var jwtToken = jwtService.issueToken(principal);
+
+        var accessToken = jwtService.issueToken(principal);
         var refreshToken = refreshTokenService.createAndSaveRefreshToken(principal.getId());
-        System.out.println("Successfully authenticated. Security context contains: " + SecurityContextHolder.getContext().getAuthentication());
-        return SignInResponse.builder().accessToken(jwtToken).refreshToken(refreshToken.token).build();
+        log.info("Successfully authenticated. Security context contains: " + SecurityContextHolder.getContext().getAuthentication());
+        return SignInResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.token)
+                .build();
     }
 
-    public void logOutOfSingleAccount(String refreshToken) {
+    public SignOutResponse singleSessionLogout(String refreshToken) {
         var storedToken = tokenRepository.findByToken(refreshToken).orElse(null);
         if (storedToken != null) {
             storedToken.setRevoked(true);
             tokenRepository.save(storedToken);
             SecurityContextHolder.clearContext();
         }
+        return SignOutResponse.builder()
+                .message("successfully signed out")
+                .numberOfRefreshTokensRemoved(1)
+                .build();
     }
 
-    public void logOutOfAllAccount(Long userId) {
+    public SignOutResponse allSessionsLogout(Long userId) {
         Optional<TPUser> user = userRepository.findById(userId);
-        refreshTokenService.revokeAllUserTokens(user.orElseThrow(() -> new UserNotFoundException(userId)));
+        int numberOfRevokedUsers = refreshTokenService.revokeAllUserTokens(user.orElseThrow(() -> new UserNotFoundException(userId)));
+        return SignOutResponse.builder()
+                .message("successfully signed out of all sessions")
+                .numberOfRefreshTokensRemoved(numberOfRevokedUsers)
+                .build();
     }
 
-    public SignInResponse register(RegisterRequest request) {
-        var user = TPUser.builder().name(request.getUsername()).password(passwordEncoder.encode(request.getPassword())).role(Role.USER).refreshTokens(null).updatedAt(LocalDateTime.now()).createdAt(LocalDateTime.now()).build();
+    @Transactional
+    public SignInResponse signUp(SignUpRequest request) {
+        var user = TPUser.builder()
+                .name(request.getUsername())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.USER)
+                .refreshTokens(null)
+                .updatedAt(LocalDateTime.now(ZoneOffset.UTC))
+                .createdAt(LocalDateTime.now(ZoneOffset.UTC))
+                .build();
+
+        // if we used a separate table in the database to store user roles:
+        // UserEntity user = new UserEntity();
+        // user.setUsername(registerDto.getUsername());
+        // user.setPassword(passwordEncoder.encode((registerDto.getPassword())));
+        // Role roles = roleRepository.findByName("USER").get();
+        // user.setRoles(Collections.singletonList(roles));
 
         var savedUser = userRepository.save(user);
         var principal = new TPUserPrincipal(savedUser);
         var jwtToken = jwtService.issueToken(principal);
         var refreshToken = refreshTokenService.createAndSaveRefreshToken(savedUser);
 
-        return SignInResponse.builder().accessToken(jwtToken).refreshToken(refreshToken.token).build();
+        var tPUserDTO = TPUserPublicInfoDTO.builder()
+                .id(savedUser.getId())
+                .name(savedUser.getName())
+                .role(savedUser.getRole())
+                .createdAt(savedUser.getCreatedAt())
+                .updatedAt(savedUser.getUpdatedAt())
+                .build();
+
+        return SignInResponse
+                .builder()
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken.token)
+                .userPublicInfo(tPUserDTO)
+                .build();
     }
 
-    public RefreshTokenResponse refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
-//        List<String> filteredList = listOfOptionals.stream()
-//                .filter(Optional::isPresent)
-//                .map(Optional::get)
-//                .collect(Collectors.toList());
-//
-//        List<String> filteredList = listOfOptionals.stream()
-//                .flatMap(o -> o.isPresent() ? Stream.of(o.get()) : Stream.empty())
-//                .collect(Collectors.toList());
-//        List<String> filteredList = listOfOptionals.stream()
-//                .flatMap(o -> o.map(Stream::of).orElseGet(Stream::empty))
-//                .collect(Collectors.toList());
-//        List<String> filteredList = listOfOptionals.stream()
-//                .flatMap(Optional::stream)
-//                .collect(Collectors.toList());
+    public TPUserPublicInfoDTO grantAdminPermissions(long idOfTheUserToWhomPermissionsAreGranted) {
+        TPUser user = userRepository.findById(idOfTheUserToWhomPermissionsAreGranted).orElseThrow();
+        user.setRole(Role.ADMIN);
+        userRepository.save(user);
+        TPUserPublicInfoDTO userDTO = TPUserPublicInfoDTO
+                .builder()
+                .id(user.getId())
+                .name(user.getName())
+                .role(user.getRole())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(LocalDateTime.now(ZoneOffset.UTC))
+                .build();
+        return userDTO;
+    }
 
+    public RefreshTokenResponse refreshAccessToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
         // new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-        return refreshTokenService.findByToken(refreshTokenRequest.getRefreshToken()).filter(refreshTokenService::verifyIfTokenExpiredOrRevoked).map(userInfo -> {
-            TPUser owner = userInfo.owner;
-            TPUserPrincipal principal = new TPUserPrincipal(owner);
-            String accessToken = jwtService.issueToken(principal);
-            return new RefreshTokenResponse(accessToken);
-        }).orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
+        return refreshTokenService
+                .findByToken(refreshTokenRequest.getRefreshToken())
+                .filter(refreshTokenService::verifyIfTokenExpiredOrRevoked)
+                .map(refreshToken -> {
+                    TPUser owner = refreshToken.owner;
+                    TPUserPrincipal principal = new TPUserPrincipal(owner);
+                    String accessToken = jwtService.issueToken(principal);
+                    return new RefreshTokenResponse(accessToken);
+                }).orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
     }
 }
