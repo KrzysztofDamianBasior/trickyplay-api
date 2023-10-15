@@ -40,7 +40,11 @@ public class JwtService {
         // in previous versions of the library Jwts.parser() that returns new JwtParser instance was recommended to use, now it is deprecated
         // Jwts.parser().setSigningKey(getSignInKey()).parseClaimsJws(token).getBody(); -deprecated, use parserBuilder() instead
 
-        return Jwts.parserBuilder().setSigningKey(getSignInKey()).build().parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder()
+                .setSigningKey(getSignInKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -83,6 +87,8 @@ public class JwtService {
                 .name((String) claims.get("userName"))
                 .password(null)
                 .role((String) claims.get("userRole"))
+                .createdAt(claims.get("userCreatedAt").toString())
+                .updatedAt(claims.get("userUpdatedAt").toString())
                 .build();
     }
 
@@ -124,22 +130,27 @@ public class JwtService {
         // JJwt is fully RFC specification compliant on all implemented functionality, tested against RFC-specified test vectors
         //SignatureAlgorithm.HS256 creates header- (alg: HS256), that means algorithm HMAC using SHA-256
         //  signature by RSA algorithm is binary data, even if we decode the signature field by base64url, what we can get is binary data
-        Map<String, Object> rolesClaim = new HashMap<>();
-        List<String> roles = new ArrayList<>();
-        userDetails.getAuthorities().forEach(a -> roles.add(a.getAuthority()));
-        rolesClaim.put("roles", roles);
+        List<String> authorities = new ArrayList<>();
+        userDetails.getAuthorities().forEach(a -> authorities.add(a.getAuthority()));
+        Map<String, Object> additionalClaims = new HashMap<>();
+        additionalClaims.put("authorities", authorities);
 
         return Jwts.builder().setClaims(extraClaims)
                 // .setIssuer()
                 // .setAudience()
                 // .setSubject(String.format("%s,%s", user.getId(), user.getName()))
                 // .setId(UUID.randomUUID().toString()) //not needed for now
-                .setSubject(userDetails.getUsername()) //userDetails.getUsername() actually returns the id not the username, the name is a bit unfortunate
+                .setSubject(userDetails.getId().toString())
                 .setIssuedAt(new Date(System.currentTimeMillis())) // Instant.now()
                 .setExpiration(new Date(System.currentTimeMillis() + expiration)) // Instant.now().plusMillis(expiration) or Instant.now().toEpochMilli() + expiration
-                .claim("hello", "world")
+                .claim("userId", userDetails.getId().toString())
+                .claim("userName", userDetails.getName())
+                .claim("userRole", userDetails.getRole().name())
+                .claim("userCreatedAt", userDetails.getCreatedAt().toString())
+                .claim("userUpdatedAt", userDetails.getUpdatedAt().toString())
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
-                .addClaims(rolesClaim).compact();
+                .addClaims(additionalClaims)
+                .compact();
     }
 
     public boolean isTokenExpired(String token) {
@@ -158,15 +169,15 @@ public class JwtService {
             // token is trustworthy and has not been tampered with
             return true;
         } catch (ExpiredJwtException ex) {
-            log.error("JWT expired", ex.getMessage());
+            log.error("token: " + token + " | " + "JWT expired", ex.getMessage());
         } catch (IllegalArgumentException ex) {
-            log.error("Token is null, empty or only whitespace", ex.getMessage());
+            log.error("token: " + token + " | " + "Token is null, empty or only whitespace", ex.getMessage());
         } catch (MalformedJwtException ex) {
-            log.error("JWT is invalid", ex);
+            log.error("token: " + token + " | " + "JWT is invalid", ex);
         } catch (UnsupportedJwtException ex) {
-            log.error("JWT is not supported", ex);
+            log.error("token: " + token + " | " + "JWT is not supported", ex);
         } catch (SignatureException ex) {
-            log.error("Signature validation failed");
+            log.error("token: " + token + " | " + "Signature validation failed");
         }
         return false;
     }
