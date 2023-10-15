@@ -19,12 +19,18 @@ public class TPUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) {
         // UsernameNotFoundException which is a subclass of AuthenticationException can be thrown during authentication
-        TPUser user = userRepository.findByName(username).orElseThrow(() -> new UsernameNotFoundException(username));
+        TPUser user = userRepository.findByName(username)
+                .orElseThrow(() -> new UsernameNotFoundException(username));
         return new TPUserPrincipal(user);
+
+        // without custom principal:
+        // import org.springframework.security.core.userdetails.User;
+        // return new User(user.getUsername(), user.getPassword(), user.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList()));
     }
 
     public UserDetails loadUserById(Long id) {
-        TPUser user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("user with id: " + id));
+        TPUser user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("user with id: " + id));
         return new TPUserPrincipal(user);
     }
 }

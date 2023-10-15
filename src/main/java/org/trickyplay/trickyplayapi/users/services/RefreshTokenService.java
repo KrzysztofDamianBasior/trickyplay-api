@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.trickyplay.trickyplayapi.general.exceptions.UserNotFoundException;
 import org.trickyplay.trickyplayapi.users.entities.RefreshToken;
 import org.trickyplay.trickyplayapi.users.entities.TPUser;
 import org.trickyplay.trickyplayapi.users.repositories.RefreshTokenRepository;
@@ -27,19 +26,9 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final TPUserRepository userRepository;
 
-    public RefreshToken createAndSaveRefreshToken(String username) {
-        RefreshToken refreshToken = RefreshToken.builder()
-                .owner(userRepository.findByName(username).orElseThrow(() -> new UserNotFoundException(username)))
-                .token(UUID.randomUUID().toString())
-                .expiryDate(Instant.now().plusMillis(refreshExpiration))
-                .revoked(false)
-                .build();
-        return refreshTokenRepository.save(refreshToken);
-    }
-
     public RefreshToken createAndSaveRefreshToken(Long id) {
         RefreshToken refreshToken = RefreshToken.builder()
-                .owner(userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id)))
+                .owner(userRepository.getReferenceById(id))
                 .token(UUID.randomUUID().toString())
                 .expiryDate(Instant.now().plusMillis(refreshExpiration))
                 .revoked(false)
@@ -85,9 +74,7 @@ public class RefreshTokenService {
         var validUserTokens = refreshTokenRepository.findAllValidTokensByUser(user.getId());
         if (validUserTokens.isEmpty()) return 0;
 
-        validUserTokens.forEach(token -> {
-            token.setRevoked(true);
-        });
+        validUserTokens.forEach(token -> token.setRevoked(true));
         refreshTokenRepository.saveAll(validUserTokens);
         return validUserTokens.size();
     }

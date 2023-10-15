@@ -25,7 +25,7 @@ public class RefreshToken {
 
     public boolean revoked;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne() // From the JPA 2.0 spec @ManyToOne has default FetchType.EAGER.
     @JoinColumn(name = "owner_user_id", referencedColumnName = "id")
     public TPUser owner;
 
