@@ -14,7 +14,6 @@ import static org.trickyplay.trickyplayapi.users.enums.Permission.ADMIN_READ;
 import static org.trickyplay.trickyplayapi.users.enums.Permission.ADMIN_UPDATE;
 import static org.trickyplay.trickyplayapi.users.enums.Permission.ADMIN_CREATE;
 import static org.trickyplay.trickyplayapi.users.enums.Permission.ADMIN_DELETE;
-
 import static org.trickyplay.trickyplayapi.users.enums.Permission.USER_READ;
 import static org.trickyplay.trickyplayapi.users.enums.Permission.USER_UPDATE;
 import static org.trickyplay.trickyplayapi.users.enums.Permission.USER_CREATE;
@@ -28,7 +27,9 @@ public enum Role {
     private final Set<Permission> permissions; // allowedOperations
 
     public List<SimpleGrantedAuthority> getAuthorities() {
-        var authorities = getPermissions().stream().map(permission -> new SimpleGrantedAuthority(permission.getPermission())).collect(Collectors.toList());
+        var authorities = getPermissions().stream()
+                .map(permission -> new SimpleGrantedAuthority(permission.getPermission()))
+                .collect(Collectors.toList());
 
         authorities.add(new SimpleGrantedAuthority("ROLE_" + this.name()));
         return authorities;
