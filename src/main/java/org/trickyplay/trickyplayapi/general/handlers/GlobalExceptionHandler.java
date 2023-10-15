@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import org.trickyplay.trickyplayapi.general.exceptions.CommentNotFoundException;
-import org.trickyplay.trickyplayapi.general.exceptions.NameTakenException;
-import org.trickyplay.trickyplayapi.general.exceptions.ReplyNotFoundException;
-import org.trickyplay.trickyplayapi.general.exceptions.UserNotFoundException;
+import org.trickyplay.trickyplayapi.general.exceptions.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,32 +22,67 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     @ExceptionHandler(ReplyNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleReplyNotFoundException(ReplyNotFoundException ex) {
-        return ex.getMessage();
+    public Map<String, String> handleReplyNotFoundException(ReplyNotFoundException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", ex.getMessage());
+        return errors;
     }
 
     @ExceptionHandler(CommentNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleCommentNotFoundException(CommentNotFoundException ex) {
-        return ex.getMessage();
+    public Map<String, String> handleCommentNotFoundException(CommentNotFoundException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", ex.getMessage());
+        return errors;
     }
 
     @ExceptionHandler(UserNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleUserNotFoundException(UserNotFoundException ex) {
-        return ex.getMessage();
+    public Map<String, String> handleUserNotFoundException(UserNotFoundException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", ex.getMessage());
+        return errors;
+    }
+
+    @ExceptionHandler(RefreshTokenNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleRefreshTokenNotFoundException(RefreshTokenNotFoundException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", ex.getMessage());
+        return errors;
     }
 
     @ExceptionHandler(NameTakenException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleNameTakenException(NameTakenException ex) {
-        return ex.getMessage();
+    public Map<String, String> handleNameTakenException(NameTakenException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", ex.getMessage());
+        return errors;
+    }
+
+    @ExceptionHandler(OperationNotAllowedException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)    // 409
+    public Map<String, String> handleOperationNotAllowedException(OperationNotAllowedException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", ex.getMessage());
+        return errors;
+    }
+
+
+    @ExceptionHandler(RefreshTokenExpiredOrRevokedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Map<String, String> handleRefreshTokenExpiredOrRevokedException(RefreshTokenExpiredOrRevokedException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", ex.getMessage());
+        return errors;
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    ResponseEntity<String> handleConstraintViolationException(ConstraintViolationException e) {
-        return new ResponseEntity<>("not valid due to validation error: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+    ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException e) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", "not valid due to validation error: " + e.getMessage());
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
