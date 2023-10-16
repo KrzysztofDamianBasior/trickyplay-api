@@ -37,10 +37,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //            Collections.list(request.getHeaderNames())
 //                    .forEach(header -> log.info("Header: {}={}", header, httpRequest.getHeader(header)))
 
-        if (request.getServletPath().contains("/auth")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+//        if (request.getServletPath().contains("/auth")) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
 
         if (!hasAuthorizationBearer(request)) {
             filterChain.doFilter(request, response);
@@ -56,7 +56,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             setAuthenticationContext(token, request);
         }
-
         filterChain.doFilter(request, response);
     }
 

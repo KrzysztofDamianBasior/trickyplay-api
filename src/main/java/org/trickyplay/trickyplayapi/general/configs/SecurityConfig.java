@@ -36,9 +36,9 @@ import org.trickyplay.trickyplayapi.users.services.TPUserDetailsService;
 @EnableWebSecurity
 @RequiredArgsConstructor
 @EnableMethodSecurity(
-        prePostEnabled = true, // The prePostEnabled property enables Spring Security pre/post annotations.
-        securedEnabled = true, // The securedEnabled property determines if the @Secured annotation should be enabled.
-        jsr250Enabled = true) // The jsr250Enabled property allows us to use the @RoleAllowed annotation.
+        prePostEnabled = true, // The prePostEnabled property enables Spring Security pre/post annotations. Supports Spring Expression Language like @PreAuthorize("hasRole('ROLE_ADMIN') or hasAuthority('Admin') and #username == authentication.principal.username)")
+        securedEnabled = true, // The securedEnabled property determines if the @Secured annotation should be enabled. Thanks to this flag it becomes possible to use annotations like this @Secured({ "ROLE_USER", "ROLE_ADMIN" })
+        jsr250Enabled = true) // The jsr250Enabled property allows us to use the @RoleAllowed annotation. The @RolesAllowed annotation is the JSR-250’s equivalent annotation of the @Secured annotation- @RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UnauthorizedHandler unauthorizedHandler; // JwtAuthEntryPoint
@@ -155,8 +155,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/replies").hasAuthority(Permission.USER_UPDATE.getPermission())
                         .requestMatchers(HttpMethod.DELETE, "/replies").hasAnyRole(Role.USER.name(), Role.ADMIN.name())
                         .requestMatchers(HttpMethod.GET, "/users/**").permitAll()  // Relax security for public resources
-                        .requestMatchers(HttpMethod.PATCH, "/account/change-name", "/account/change-password").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.BANNED.name())
-                        .requestMatchers(HttpMethod.DELETE, "/account/delete-account").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.BANNED.name())
+                        .requestMatchers(HttpMethod.PATCH, "/account").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.BANNED.name())
+                        .requestMatchers(HttpMethod.DELETE, "/account").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.BANNED.name())
                         .requestMatchers(HttpMethod.GET, "/account").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.BANNED.name())
                         .requestMatchers(HttpMethod.PATCH, "/account/{id}/ban-account", "/account/{id}/unban-account").hasRole(Role.ADMIN.name())
                         .requestMatchers(HttpMethod.PATCH, "/account/{id}/grant-admin-permissions").hasRole(Role.ADMIN.name())

@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(OperationNotAllowedException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)    // 409
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     public Map<String, String> handleOperationNotAllowedException(OperationNotAllowedException ex) {
         Map<String, String> errors = new HashMap<>();
         errors.put("message", ex.getMessage());
