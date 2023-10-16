@@ -26,11 +26,11 @@ public class Comment {
 
     private String body;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne() // default fetch type for @ManyToOne is fetch = FetchType.EAGER
     @JoinColumn(name = "author_user_id", referencedColumnName = "id")
     private TPUser author;
 
-    @OneToMany(mappedBy = "parentComment", orphanRemoval = true, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parentComment", orphanRemoval = true, cascade = CascadeType.ALL) // From the JPA 2.0 spec @OneToMany has default FetchType.LAZY. OrphanRemoval attribute in @OneToMany and @OneToOne is by default false. By default, no operations are cascaded.
     private List<Reply> replies;
 
     private String gameName;
