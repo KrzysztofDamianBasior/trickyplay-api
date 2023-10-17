@@ -14,6 +14,7 @@ import org.trickyplay.trickyplayapi.comments.dtos.GetCommentsResponse;
 import org.trickyplay.trickyplayapi.comments.records.CommentsPageArgs;
 import org.trickyplay.trickyplayapi.comments.services.CommentsService;
 import org.trickyplay.trickyplayapi.replies.dtos.GetRepliesResponse;
+import org.trickyplay.trickyplayapi.replies.records.RepliesPageArgs;
 import org.trickyplay.trickyplayapi.replies.services.RepliesService;
 import org.trickyplay.trickyplayapi.users.dtos.GetUsersResponse;
 import org.trickyplay.trickyplayapi.users.dtos.TPUserPublicInfoDTO;
@@ -79,7 +80,8 @@ public class UsersController {
 //        Set<String> orderValues = Set.of("Asc", "Dsc");
 //        Sort.Direction sortDirection = orderValues.contains(orderDirection) ? Sort.Direction.fromString(orderDirection) : Sort.Direction.ASC;
         Sort.Direction sortDirection = Sort.Direction.fromString(orderDirection);
-        return repliesService.getRepliesByAuthorId(id, pageNumber, pageSize, sortBy, sortDirection);
+        RepliesPageArgs repliesPageArgs = new RepliesPageArgs(pageNumber, pageSize, sortBy, sortDirection);
+        return repliesService.getRepliesByAuthorId(id, repliesPageArgs);
     }
 }
 

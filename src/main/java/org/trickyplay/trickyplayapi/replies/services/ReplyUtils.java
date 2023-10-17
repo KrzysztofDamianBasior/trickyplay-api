@@ -1,11 +1,16 @@
 package org.trickyplay.trickyplayapi.replies.services;
 
+import org.trickyplay.trickyplayapi.replies.controllers.RepliesController;
 import org.trickyplay.trickyplayapi.replies.dtos.ReplyRepresentation;
 import org.trickyplay.trickyplayapi.replies.entities.Reply;
+import org.trickyplay.trickyplayapi.users.controllers.UsersController;
 import org.trickyplay.trickyplayapi.users.services.UserUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 public class ReplyUtils {
     public static List<ReplyRepresentation> mapToReplyDTOs(List<Reply> replies) {
@@ -15,13 +20,24 @@ public class ReplyUtils {
     }
 
     public static ReplyRepresentation mapToReplyDTO(Reply reply) {
-        return ReplyRepresentation.builder()
+        ReplyRepresentation replyRepresentation = ReplyRepresentation.builder()
                 .id(reply.getId())
                 .body(reply.getBody())
                 .author(UserUtils.mapToTPUserPublicInfoDTO(reply.getAuthor()))
                 .createdAt(reply.getCreatedAt())
                 .updatedAt(reply.getUpdatedAt())
                 .build();
+
+        replyRepresentation.add(linkTo(methodOn(RepliesController.class)
+                .getSingleReply(replyRepresentation.getId()))
+                .withSelfRel());
+        replyRepresentation.add(linkTo(methodOn(UsersController.class)
+                .getUser(replyRepresentation.getAuthor().getId()))
+                .withRel("author"));
+        replyRepresentation.add(linkTo(methodOn(RepliesController.class)
+                .getRepliesByParentCommentId(reply.getParentComment().getId(), 0, 10, "id", "Asc"))
+                .withRel("collection"));
+        return replyRepresentation;
     }
 
     private List<Reply> extractRepliesBelongingToComment(List<Reply> replies, long commentId) {

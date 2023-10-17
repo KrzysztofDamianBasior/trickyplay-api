@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import org.trickyplay.trickyplayapi.replies.dtos.*;
+import org.trickyplay.trickyplayapi.replies.records.RepliesPageArgs;
 import org.trickyplay.trickyplayapi.replies.services.RepliesService;
 import org.trickyplay.trickyplayapi.users.models.TPUserPrincipal;
 
@@ -39,7 +40,9 @@ public class RepliesController {
 //        Set<String> orderValues = Set.of("Asc", "Dsc");
 //        Sort.Direction sortDirection = orderValues.contains(orderDirection) ? Sort.Direction.fromString(orderDirection) : Sort.Direction.ASC;
         Sort.Direction sortDirection = Sort.Direction.fromString(orderDirection);
-        return repliesService.getRepliesByParentCommentId(parentCommentId, pageNumber, pageSize, sortBy, sortDirection);
+        RepliesPageArgs repliesPageArgs = new RepliesPageArgs(pageNumber, pageSize, sortBy, sortDirection);
+
+        return repliesService.getRepliesByParentCommentId(parentCommentId, repliesPageArgs);
     }
 
     @GetMapping("/{id}")
@@ -69,10 +72,12 @@ public class RepliesController {
         return ResponseEntity.created(replyURI).body(replyDTO);
     }
 
-    @PatchMapping()
+    @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('user:update') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-    public ReplyRepresentation editReply(@Valid @RequestBody EditReplyRequest editReplyRequest,
-                                         @AuthenticationPrincipal TPUserPrincipal user
+    public ReplyRepresentation editReply(
+            @PathVariable @Min(0) long id,
+            @Valid @RequestBody EditReplyRequest editReplyRequest,
+            @AuthenticationPrincipal TPUserPrincipal user
     ) {
 //        Object principal = SecurityContextHolder.getContext()
 //                .getAuthentication()
@@ -85,13 +90,14 @@ public class RepliesController {
 //            String username = principal.toString();
 //        }
 
-        return repliesService.editReply(user, editReplyRequest);
+        return repliesService.editReply(id, user, editReplyRequest);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('user:delete') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-    public DeleteReplyResponse deleteReply(@PathVariable @Min(0) long id,
-                                           @AuthenticationPrincipal TPUserPrincipal user
+    public DeleteReplyResponse deleteReply(
+            @PathVariable @Min(0) long id,
+            @AuthenticationPrincipal TPUserPrincipal user
     ) {
 //        Object principal = SecurityContextHolder.getContext()
 //                .getAuthentication()

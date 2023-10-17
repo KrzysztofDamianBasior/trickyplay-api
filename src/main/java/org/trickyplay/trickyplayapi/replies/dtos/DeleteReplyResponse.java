@@ -1,12 +1,13 @@
 package org.trickyplay.trickyplayapi.replies.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
+import org.springframework.hateoas.RepresentationModel;
 
 @Data
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
-public class DeleteReplyResponse {
+@EqualsAndHashCode(callSuper = false)
+public class DeleteReplyResponse extends RepresentationModel {
     String message;
 }

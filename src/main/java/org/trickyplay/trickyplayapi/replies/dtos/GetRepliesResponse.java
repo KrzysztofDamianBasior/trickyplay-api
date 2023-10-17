@@ -1,9 +1,7 @@
 package org.trickyplay.trickyplayapi.replies.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.util.List;
 
@@ -11,7 +9,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class GetRepliesResponse {
+@EqualsAndHashCode(callSuper = false)
+public class GetRepliesResponse extends RepresentationModel {
     private long totalElements;
     private int totalPages;
     private int pageSize;
