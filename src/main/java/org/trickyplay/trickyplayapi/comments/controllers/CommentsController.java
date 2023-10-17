@@ -14,7 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import org.trickyplay.trickyplayapi.comments.dtos.*;
-import org.trickyplay.trickyplayapi.comments.records.CommentPageArgs;
+import org.trickyplay.trickyplayapi.comments.records.CommentsPageArgs;
 import org.trickyplay.trickyplayapi.comments.services.CommentsService;
 import org.trickyplay.trickyplayapi.users.models.TPUserPrincipal;
 
@@ -54,8 +54,8 @@ public class CommentsController {
 //        PagedModel<CommentRepresentation> pagedComments = new PagedModel<>(commentRepresentationCollection, metadata);
 
         Sort.Direction sortDirection = Sort.Direction.fromString(orderDirection);
-        CommentPageArgs commentPageArgs = new CommentPageArgs(gameName, pageNumber, pageSize, sortBy, sortDirection);
-        return commentsService.getCommentsByGameName(commentPageArgs);
+        CommentsPageArgs commentsPageArgs = new CommentsPageArgs(pageNumber, pageSize, sortBy, sortDirection);
+        return commentsService.getCommentsByGameName(gameName, commentsPageArgs);
     }
 
     @GetMapping("/{id}")

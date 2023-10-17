@@ -11,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import org.trickyplay.trickyplayapi.comments.dtos.GetCommentsResponse;
+import org.trickyplay.trickyplayapi.comments.records.CommentsPageArgs;
 import org.trickyplay.trickyplayapi.comments.services.CommentsService;
 import org.trickyplay.trickyplayapi.replies.dtos.GetRepliesResponse;
 import org.trickyplay.trickyplayapi.replies.services.RepliesService;
@@ -61,7 +62,8 @@ public class UsersController {
 //        Set<String> orderValues = Set.of("Asc", "Dsc");
 //        Sort.Direction sortDirection = orderValues.contains(orderDirection) ? Sort.Direction.fromString(orderDirection) : Sort.Direction.ASC;
         Sort.Direction sortDirection = Sort.Direction.fromString(orderDirection);
-        return commentsService.getCommentsByAuthorId(id, pageNumber, pageSize, sortBy, sortDirection);
+        CommentsPageArgs commentsPageArgs = new CommentsPageArgs(pageNumber, pageSize, sortBy, sortDirection);
+        return commentsService.getCommentsByAuthorId(id, commentsPageArgs);
     }
 
     @GetMapping("/{id}/replies")

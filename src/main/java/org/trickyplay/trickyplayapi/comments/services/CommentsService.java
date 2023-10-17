@@ -13,12 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.trickyplay.trickyplayapi.comments.controllers.CommentsController;
 import org.trickyplay.trickyplayapi.comments.dtos.*;
 import org.trickyplay.trickyplayapi.comments.entities.Comment;
-import org.trickyplay.trickyplayapi.comments.records.CommentPageArgs;
+import org.trickyplay.trickyplayapi.comments.records.CommentsPageArgs;
 import org.trickyplay.trickyplayapi.comments.repositories.CommentRepository;
 import org.trickyplay.trickyplayapi.general.exceptions.CommentNotFoundException;
 import org.trickyplay.trickyplayapi.general.exceptions.OperationNotAllowedException;
 import org.trickyplay.trickyplayapi.replies.entities.Reply;
 import org.trickyplay.trickyplayapi.replies.repositories.ReplyRepository;
+import org.trickyplay.trickyplayapi.users.controllers.UsersController;
 import org.trickyplay.trickyplayapi.users.entities.TPUser;
 import org.trickyplay.trickyplayapi.users.enums.Role;
 import org.trickyplay.trickyplayapi.users.models.TPUserPrincipal;
@@ -40,14 +41,14 @@ public class CommentsService {
     private final ReplyRepository replyRepository;
     private final TPUserRepository tPUserRepository;
 
-    public GetCommentsResponse getCommentsByGameName(CommentPageArgs commentPageArgs) {
+    public GetCommentsResponse getCommentsByGameName(String gameName, CommentsPageArgs commentsPageArgs) {
         Pageable pageable = PageRequest.of(
-                commentPageArgs.pageNumber(),
-                commentPageArgs.pageSize(),
-                commentPageArgs.orderDirection(),
-                commentPageArgs.sortBy()
+                commentsPageArgs.pageNumber(),
+                commentsPageArgs.pageSize(),
+                commentsPageArgs.orderDirection(),
+                commentsPageArgs.sortBy()
         );
-        Page<Comment> commentPage = commentRepository.findAllByGameName(commentPageArgs.gameName(), pageable);
+        Page<Comment> commentPage = commentRepository.findAllByGameName(gameName, pageable);
 //        if (!commentPage.hasContent()) {
 //            log.info("no content in comment page, game: {}, page: {}", gameName, pageNumber);
 //        }
@@ -65,22 +66,29 @@ public class CommentsService {
                 .build();
         commentsResponse.add(linkTo(methodOn(CommentsController.class)
                 .getCommentsByGameName(
-                        commentPageArgs.gameName(),
-                        commentPageArgs.pageNumber(),
-                        commentPageArgs.pageSize(),
-                        commentPageArgs.sortBy(),
-                        commentPageArgs.orderDirection().name())
-        )
-                .withSelfRel());
+                        gameName,
+                        commentsPageArgs.pageNumber(),
+                        commentsPageArgs.pageSize(),
+                        commentsPageArgs.sortBy(),
+                        commentsPageArgs.orderDirection().name()
+                )).withSelfRel());
         return commentsResponse;
     }
 
-    public GetCommentsResponse getCommentsByAuthorId(long authorId, int pageNumber, int pageSize, String sortBy, Sort.Direction sortDirection) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, sortDirection, sortBy);
+    public GetCommentsResponse getCommentsByAuthorId(long authorId, CommentsPageArgs commentsPageArgs) {
+        Pageable pageable = PageRequest.of(
+                commentsPageArgs.pageNumber(),
+                commentsPageArgs.pageSize(),
+                commentsPageArgs.orderDirection(),
+                commentsPageArgs.sortBy()
+        );
+//        if (!commentPage.hasContent()) {
+//            log.info("no content in comment page, game: {}, page: {}", gameName, pageNumber);
+//        }
         Page<Comment> commentPage = commentRepository.findAllByAuthorId(authorId, pageable);
         List<CommentRepresentation> comments = CommentUtils.mapToCommentDTOs(commentPage.getContent());
 
-        return GetCommentsResponse.builder()
+        GetCommentsResponse commentsResponse = GetCommentsResponse.builder()
                 .comments(comments)
                 .pageSize(commentPage.getSize())
                 .totalElements(commentPage.getTotalElements())
@@ -89,6 +97,16 @@ public class CommentsService {
                 .pageNumber(commentPage.getNumber())
                 .isLast(commentPage.isLast())
                 .build();
+
+        commentsResponse.add(linkTo(methodOn(UsersController.class)
+                .getUserComments(
+                        authorId,
+                        commentsPageArgs.pageNumber(),
+                        commentsPageArgs.pageSize(),
+                        commentsPageArgs.sortBy(),
+                        commentsPageArgs.orderDirection().name()
+                )).withSelfRel());
+        return commentsResponse;
     }
 
     public CommentRepresentation getSingleComment(long id) {
@@ -140,9 +158,6 @@ public class CommentsService {
         Comment commentToEdit = commentRepository.findById(idOfTheResourceToBeEdited)
                 .orElseThrow(() -> new CommentNotFoundException(idOfTheResourceToBeEdited));
         TPUser commentAuthor = commentToEdit.getAuthor();
-        System.out.println(commentAuthor.getId());
-        System.out.println(principalRequestingToEditResource.getId());
-        System.out.println(commentAuthor.getId().equals(principalRequestingToEditResource.getId()));
         if (commentAuthor.getId().equals(principalRequestingToEditResource.getId())) {
             commentToEdit.setBody(commentRequest.getNewCommentBody());
             commentToEdit.setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
@@ -160,10 +175,17 @@ public class CommentsService {
                 .orElseThrow(() -> new CommentNotFoundException(idOfTheResourceToBeDeleted));
         TPUser commentAuthor = commentToDelete.getAuthor();
         if (commentAuthor.getId().equals(principalRequestingToDeleteResource.getId()) || principalRequestingToDeleteResource.getRole() == Role.ADMIN) {
-            commentRepository.deleteById(idOfTheResourceToBeDeleted);
-            return DeleteCommentResponse.builder()
+            DeleteCommentResponse deleteCommentResponse = DeleteCommentResponse.builder()
                     .message("Comment successfully removed")
                     .build();
+            deleteCommentResponse.add(linkTo(methodOn(UsersController.class)
+                    .getUser(commentToDelete.getAuthor().getId()))
+                    .withRel("author"));
+            deleteCommentResponse.add(linkTo(methodOn(CommentsController.class)
+                    .getCommentsByGameName(commentToDelete.getGameName(), 0, 10, "id", "Asc"))
+                    .withRel("collection"));
+            commentRepository.deleteById(idOfTheResourceToBeDeleted);
+            return deleteCommentResponse;
         } else {
             throw new OperationNotAllowedException("You do not have permission to perform actions on this resource");
         }

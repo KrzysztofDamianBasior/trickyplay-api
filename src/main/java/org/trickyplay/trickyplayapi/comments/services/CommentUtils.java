@@ -32,9 +32,15 @@ public class CommentUtils {
                 .updatedAt(comment.getUpdatedAt())
                 .build();
 
-        commentRepresentation.add(linkTo(methodOn(CommentsController.class).getSingleComment(commentRepresentation.getId())).withSelfRel());
-        commentRepresentation.add(linkTo(methodOn(UsersController.class).getUser(commentRepresentation.getAuthor().getId())).withRel("author"));
-        commentRepresentation.add(linkTo(methodOn(CommentsController.class).getCommentsByGameName(comment.getGameName(), 0, 10, "id", "Asc")).withRel("collection"));
+        commentRepresentation.add(linkTo(methodOn(CommentsController.class)
+                .getSingleComment(commentRepresentation.getId()))
+                .withSelfRel());
+        commentRepresentation.add(linkTo(methodOn(UsersController.class)
+                .getUser(commentRepresentation.getAuthor().getId()))
+                .withRel("author"));
+        commentRepresentation.add(linkTo(methodOn(CommentsController.class)
+                .getCommentsByGameName(comment.getGameName(), 0, 10, "id", "Asc"))
+                .withRel("collection"));
         return commentRepresentation;
     }
 }
