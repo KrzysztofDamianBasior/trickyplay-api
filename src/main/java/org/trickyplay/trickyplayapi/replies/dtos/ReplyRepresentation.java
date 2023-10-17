@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReplyDTO {
+public class ReplyRepresentation {
     private Long id;
     private String body;
     private TPUserPublicInfoDTO author;

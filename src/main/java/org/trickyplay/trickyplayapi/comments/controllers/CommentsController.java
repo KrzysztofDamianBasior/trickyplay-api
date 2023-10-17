@@ -14,8 +14,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import org.trickyplay.trickyplayapi.comments.dtos.*;
+import org.trickyplay.trickyplayapi.comments.records.CommentPageArgs;
 import org.trickyplay.trickyplayapi.comments.services.CommentsService;
 import org.trickyplay.trickyplayapi.users.models.TPUserPrincipal;
+
 
 import java.net.URI;
 
@@ -26,6 +28,14 @@ import java.net.URI;
 public class CommentsController {
     private final CommentsService commentsService;
 
+    /**
+     * @param gameName       name of the game from which comments are fetched
+     * @param pageNumber     number of the page returned
+     * @param pageSize       number of entries in each page
+     * @param sortBy         column to sort on
+     * @param orderDirection sort order. Can be ASC or DESC
+     * @return Page object with comments after filtering and sorting
+     */
     @GetMapping("/feed")
     @PreAuthorize("permitAll()")
     public GetCommentsResponse getCommentsByGameName(
@@ -38,20 +48,26 @@ public class CommentsController {
 //        int pageNo = pageNumber >= 0 ? pageNumber : 0;
 //        Set<String> orderValues = Set.of("Asc", "Dsc");
 //        Sort.Direction sortDirection = orderValues.contains(orderDirection) ? Sort.Direction.fromString(orderDirection) : Sort.Direction.ASC;
+
+//        Spring hateoas provides a ready-made paging solution, but it will not be used because this API returns a more custom solution
+//        PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(data.size(), 1, data.size(), 1);
+//        PagedModel<CommentRepresentation> pagedComments = new PagedModel<>(commentRepresentationCollection, metadata);
+
         Sort.Direction sortDirection = Sort.Direction.fromString(orderDirection);
-        return commentsService.getCommentsByGameName(gameName, pageNumber, pageSize, sortBy, sortDirection);
+        CommentPageArgs commentPageArgs = new CommentPageArgs(gameName, pageNumber, pageSize, sortBy, sortDirection);
+        return commentsService.getCommentsByGameName(commentPageArgs);
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("permitAll()")
-    public CommentDTO getSingleComment(@PathVariable @Min(0) long id) {
+    public CommentRepresentation getSingleComment(@PathVariable @Min(0) long id) {
         return commentsService.getSingleComment(id);
     }
 
     @PostMapping()
     @PreAuthorize("hasAuthority('user:read') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<CommentDTO> addComment(@Valid @RequestBody AddCommentRequest addCommentRequest,
-                                                 @AuthenticationPrincipal TPUserPrincipal user
+    public ResponseEntity<CommentRepresentation> addComment(@Valid @RequestBody AddCommentRequest addCommentRequest,
+                                                            @AuthenticationPrincipal TPUserPrincipal user
     ) {
 //        Object principal = SecurityContextHolder.getContext()
 //                .getAuthentication()
@@ -63,16 +79,18 @@ public class CommentsController {
 //        } else {
 //            String username = principal.toString();
 //        }
-        CommentDTO commentDTO = commentsService.addComment(user, addCommentRequest);
-        URI commentURI = URI.create("/comments/" + commentDTO.getId());
-        return ResponseEntity.created(commentURI).body(commentDTO);
+        CommentRepresentation commentRepresentation = commentsService.addComment(user, addCommentRequest);
+        URI commentURI = URI.create("/comments/" + commentRepresentation.getId());
+        return ResponseEntity.created(commentURI).body(commentRepresentation);
     }
 
 
-    @PatchMapping()
+    @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('user:update') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-    public CommentDTO editComment(@Valid @RequestBody EditCommentRequest editCommentRequest,
-                                  @AuthenticationPrincipal TPUserPrincipal user
+    public CommentRepresentation editComment(
+            @PathVariable @Min(0) long id,
+            @Valid @RequestBody EditCommentRequest editCommentRequest,
+            @AuthenticationPrincipal TPUserPrincipal user
     ) {
 //        Object principal = SecurityContextHolder.getContext()
 //                .getAuthentication()
@@ -85,7 +103,7 @@ public class CommentsController {
 //            String username = principal.toString();
 //        }
 
-        return commentsService.editComment(user, editCommentRequest);
+        return commentsService.editComment(user, id, editCommentRequest);
     }
 
     @DeleteMapping("/{id}")

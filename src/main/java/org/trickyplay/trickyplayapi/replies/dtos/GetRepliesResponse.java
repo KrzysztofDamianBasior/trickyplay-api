@@ -17,5 +17,5 @@ public class GetRepliesResponse {
     private int pageSize;
     private int pageNumber;
     private boolean isLast;
-    private List<ReplyDTO> replies;
+    private List<ReplyRepresentation> replies;
 }

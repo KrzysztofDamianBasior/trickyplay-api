@@ -2,6 +2,9 @@ package org.trickyplay.trickyplayapi.comments.dtos;
 
 import lombok.*;
 
+import org.springframework.hateoas.RepresentationModel;
+import org.springframework.hateoas.server.core.Relation;
+
 import org.trickyplay.trickyplayapi.users.dtos.TPUserPublicInfoDTO;
 
 import java.time.LocalDateTime;
@@ -10,7 +13,9 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentDTO {
+@EqualsAndHashCode(callSuper = false)
+@Relation(itemRelation = "comment", collectionRelation = "comments")
+public class CommentRepresentation extends RepresentationModel<CommentRepresentation> {
     private long id;
     private String body;
     private String gameName;

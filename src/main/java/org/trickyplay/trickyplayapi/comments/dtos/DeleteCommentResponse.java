@@ -1,14 +1,14 @@
 package org.trickyplay.trickyplayapi.comments.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
+
+import org.springframework.hateoas.RepresentationModel;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DeleteCommentResponse {
+@EqualsAndHashCode(callSuper = false)
+public class DeleteCommentResponse extends RepresentationModel {
     private String message;
 }

@@ -146,14 +146,14 @@ public class SecurityConfig {
                         // ref: https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html
                         // Ant is the default language that Spring Security uses to match requests.
                         .requestMatchers("/auth/**").permitAll() // Relax security for authentication endpoints
-                        .requestMatchers(HttpMethod.GET, "/comments").permitAll()  // Relax security for public resources
+                        .requestMatchers(HttpMethod.GET, "/comments/**").permitAll()  // Relax security for public resources
                         .requestMatchers(HttpMethod.POST, "/comments").hasAuthority(Permission.USER_CREATE.getPermission())
-                        .requestMatchers(HttpMethod.PATCH, "/comments").hasAuthority(Permission.USER_UPDATE.getPermission())
-                        .requestMatchers(HttpMethod.DELETE, "/comments").hasAnyRole(Role.USER.name(), Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.PATCH, "/comments/{id}").hasAuthority(Permission.USER_UPDATE.getPermission())
+                        .requestMatchers(HttpMethod.DELETE, "/comments/{id}").hasAnyRole(Role.USER.name(), Role.ADMIN.name())
                         .requestMatchers(HttpMethod.GET, "/replies/**").permitAll()  // Relax security for public resources
                         .requestMatchers(HttpMethod.POST, "/replies").hasAuthority(Permission.USER_CREATE.getPermission())
-                        .requestMatchers(HttpMethod.PATCH, "/replies").hasAuthority(Permission.USER_UPDATE.getPermission())
-                        .requestMatchers(HttpMethod.DELETE, "/replies").hasAnyRole(Role.USER.name(), Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.PATCH, "/replies/{id}").hasAuthority(Permission.USER_UPDATE.getPermission())
+                        .requestMatchers(HttpMethod.DELETE, "/replies/{id}").hasAnyRole(Role.USER.name(), Role.ADMIN.name())
                         .requestMatchers(HttpMethod.GET, "/users/**").permitAll()  // Relax security for public resources
                         .requestMatchers(HttpMethod.PATCH, "/account").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.BANNED.name())
                         .requestMatchers(HttpMethod.DELETE, "/account").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.BANNED.name())

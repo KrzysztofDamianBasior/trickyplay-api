@@ -1,25 +1,20 @@
 package org.trickyplay.trickyplayapi.comments.dtos;
 
+import lombok.*;
+
 import org.hibernate.validator.constraints.Length;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import org.springframework.hateoas.RepresentationModel;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EditCommentRequest {
+@EqualsAndHashCode(callSuper = false)
+public class EditCommentRequest extends RepresentationModel {
     @NotNull
     @Length(min = 1, max = 300)
     private String newCommentBody;
-
-    @NotNull
-    @Min(0)
-    private Long commentId;
 }

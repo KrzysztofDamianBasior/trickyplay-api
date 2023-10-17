@@ -10,8 +10,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.trickyplay.trickyplayapi.comments.controllers.CommentsController;
 import org.trickyplay.trickyplayapi.comments.dtos.*;
 import org.trickyplay.trickyplayapi.comments.entities.Comment;
+import org.trickyplay.trickyplayapi.comments.records.CommentPageArgs;
 import org.trickyplay.trickyplayapi.comments.repositories.CommentRepository;
 import org.trickyplay.trickyplayapi.general.exceptions.CommentNotFoundException;
 import org.trickyplay.trickyplayapi.general.exceptions.OperationNotAllowedException;
@@ -27,6 +29,9 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,17 +40,21 @@ public class CommentsService {
     private final ReplyRepository replyRepository;
     private final TPUserRepository tPUserRepository;
 
-    public GetCommentsResponse getCommentsByGameName(String gameName, int pageNumber, int pageSize, String sortBy, Sort.Direction sortDirection) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, sortDirection, sortBy);
-        Page<Comment> commentPage = commentRepository.findAllByGameName(gameName, pageable);
-
+    public GetCommentsResponse getCommentsByGameName(CommentPageArgs commentPageArgs) {
+        Pageable pageable = PageRequest.of(
+                commentPageArgs.pageNumber(),
+                commentPageArgs.pageSize(),
+                commentPageArgs.orderDirection(),
+                commentPageArgs.sortBy()
+        );
+        Page<Comment> commentPage = commentRepository.findAllByGameName(commentPageArgs.gameName(), pageable);
 //        if (!commentPage.hasContent()) {
 //            log.info("no content in comment page, game: {}, page: {}", gameName, pageNumber);
 //        }
 
-        List<CommentDTO> comments = CommentUtils.mapToCommentDTOs(commentPage.getContent());
+        List<CommentRepresentation> comments = CommentUtils.mapToCommentDTOs(commentPage.getContent());
 
-        return GetCommentsResponse.builder()
+        GetCommentsResponse commentsResponse = GetCommentsResponse.builder()
                 .comments(comments)
                 .pageSize(commentPage.getSize())
                 .totalElements(commentPage.getTotalElements())
@@ -54,12 +63,22 @@ public class CommentsService {
                 .pageNumber(commentPage.getNumber())
                 .isLast(commentPage.isLast())
                 .build();
+        commentsResponse.add(linkTo(methodOn(CommentsController.class)
+                .getCommentsByGameName(
+                        commentPageArgs.gameName(),
+                        commentPageArgs.pageNumber(),
+                        commentPageArgs.pageSize(),
+                        commentPageArgs.sortBy(),
+                        commentPageArgs.orderDirection().name())
+        )
+                .withSelfRel());
+        return commentsResponse;
     }
 
     public GetCommentsResponse getCommentsByAuthorId(long authorId, int pageNumber, int pageSize, String sortBy, Sort.Direction sortDirection) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sortDirection, sortBy);
         Page<Comment> commentPage = commentRepository.findAllByAuthorId(authorId, pageable);
-        List<CommentDTO> comments = CommentUtils.mapToCommentDTOs(commentPage.getContent());
+        List<CommentRepresentation> comments = CommentUtils.mapToCommentDTOs(commentPage.getContent());
 
         return GetCommentsResponse.builder()
                 .comments(comments)
@@ -72,10 +91,10 @@ public class CommentsService {
                 .build();
     }
 
-    public CommentDTO getSingleComment(long id) {
+    public CommentRepresentation getSingleComment(long id) {
         return commentRepository.findById(id)
                 .map(CommentUtils::mapToCommentDTO)
-                .orElseThrow();
+                .orElseThrow(() -> new CommentNotFoundException(id));
     }
 
     public List<Comment> getCommentsWithReplies(int pageNumber, int pageSize, String sortBy, Sort.Direction sortDirection) {
@@ -97,7 +116,7 @@ public class CommentsService {
         return comments;
     }
 
-    public CommentDTO addComment(
+    public CommentRepresentation addComment(
             TPUserPrincipal principalRequestingToAddResource,
             AddCommentRequest addCommentRequest
     ) {
@@ -113,13 +132,17 @@ public class CommentsService {
     }
 
     @Transactional
-    public CommentDTO editComment(
+    public CommentRepresentation editComment(
             TPUserPrincipal principalRequestingToEditResource,
+            long idOfTheResourceToBeEdited,
             EditCommentRequest commentRequest
     ) {
-        Comment commentToEdit = commentRepository.findById(commentRequest.getCommentId())
-                .orElseThrow(() -> new CommentNotFoundException(commentRequest.getCommentId()));
+        Comment commentToEdit = commentRepository.findById(idOfTheResourceToBeEdited)
+                .orElseThrow(() -> new CommentNotFoundException(idOfTheResourceToBeEdited));
         TPUser commentAuthor = commentToEdit.getAuthor();
+        System.out.println(commentAuthor.getId());
+        System.out.println(principalRequestingToEditResource.getId());
+        System.out.println(commentAuthor.getId().equals(principalRequestingToEditResource.getId()));
         if (commentAuthor.getId().equals(principalRequestingToEditResource.getId())) {
             commentToEdit.setBody(commentRequest.getNewCommentBody());
             commentToEdit.setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));

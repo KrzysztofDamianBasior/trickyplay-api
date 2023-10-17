@@ -44,14 +44,14 @@ public class RepliesController {
 
     @GetMapping("/{id}")
     @PreAuthorize("permitAll()")
-    public ReplyDTO getSingleReply(@PathVariable @Min(0) long id) {
+    public ReplyRepresentation getSingleReply(@PathVariable @Min(0) long id) {
         return repliesService.getSingleReply(id);
     }
 
     @PostMapping()
     @PreAuthorize("hasAuthority('user:read') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ReplyDTO> addReply(@Valid @RequestBody AddReplyRequest addReplyRequest,
-                                             @AuthenticationPrincipal TPUserPrincipal user
+    public ResponseEntity<ReplyRepresentation> addReply(@Valid @RequestBody AddReplyRequest addReplyRequest,
+                                                        @AuthenticationPrincipal TPUserPrincipal user
     ) {
 //        Object principal = SecurityContextHolder.getContext()
 //                .getAuthentication()
@@ -64,15 +64,15 @@ public class RepliesController {
 //            String username = principal.toString();
 //        }
 
-        ReplyDTO replyDTO = repliesService.addReply(user, addReplyRequest);
+        ReplyRepresentation replyDTO = repliesService.addReply(user, addReplyRequest);
         URI replyURI = URI.create("/replies/" + replyDTO.getId());
         return ResponseEntity.created(replyURI).body(replyDTO);
     }
 
     @PatchMapping()
     @PreAuthorize("hasAuthority('user:update') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-    public ReplyDTO editReply(@Valid @RequestBody EditReplyRequest editReplyRequest,
-                              @AuthenticationPrincipal TPUserPrincipal user
+    public ReplyRepresentation editReply(@Valid @RequestBody EditReplyRequest editReplyRequest,
+                                         @AuthenticationPrincipal TPUserPrincipal user
     ) {
 //        Object principal = SecurityContextHolder.getContext()
 //                .getAuthentication()

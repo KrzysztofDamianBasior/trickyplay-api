@@ -36,7 +36,7 @@ public class RepliesService {
     public GetRepliesResponse getRepliesByParentCommentId(long parentCommentId, int pageNumber, int pageSize, String sortBy, Sort.Direction sortDirection) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sortDirection, sortBy);
         Page<Reply> replyPage = replyRepository.findAllByParentCommentId(parentCommentId, pageable);
-        List<ReplyDTO> replies = ReplyUtils.mapToReplyDTOs(replyPage.getContent());
+        List<ReplyRepresentation> replies = ReplyUtils.mapToReplyDTOs(replyPage.getContent());
 
         return GetRepliesResponse.builder()
                 .replies(replies)
@@ -53,7 +53,7 @@ public class RepliesService {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sortDirection, sortBy);
         Page<Reply> replyPage = replyRepository.findAllByAuthorId(authorId, pageable);
 
-        List<ReplyDTO> replies = ReplyUtils.mapToReplyDTOs(replyPage.getContent());
+        List<ReplyRepresentation> replies = ReplyUtils.mapToReplyDTOs(replyPage.getContent());
 
         return GetRepliesResponse.builder()
                 .replies(replies)
@@ -66,12 +66,12 @@ public class RepliesService {
                 .build();
     }
 
-    public ReplyDTO getSingleReply(long id) {
+    public ReplyRepresentation getSingleReply(long id) {
         return replyRepository.findById(id).map(ReplyUtils::mapToReplyDTO)
-                .orElseThrow();
+                .orElseThrow(() -> new ReplyNotFoundException(id));
     }
 
-    public ReplyDTO addReply(
+    public ReplyRepresentation addReply(
             TPUserPrincipal principalRequestingToAddResource,
             AddReplyRequest addReplyRequest) {
         Reply reply = Reply.builder()
@@ -86,7 +86,7 @@ public class RepliesService {
     }
 
     @Transactional
-    public ReplyDTO editReply(
+    public ReplyRepresentation editReply(
             TPUserPrincipal principalRequestingToEditResource,
             EditReplyRequest replyRequest
     ) {
