@@ -25,11 +25,11 @@ public class Reply {
 
     private String body;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne() // default fetch type for @ManyToOne is fetch = FetchType.EAGER
     @JoinColumn(name = "author_user_id", referencedColumnName = "id")
     private TPUser author;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne() // default fetch type for @ManyToOne is fetch = FetchType.EAGER
     @JoinColumn(name = "parent_comment_id", referencedColumnName = "id")
     private Comment parentComment;
 
