@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,21 +53,14 @@ public class RepliesController {
 
     @PostMapping()
     @PreAuthorize("hasAuthority('user:read') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<ReplyRepresentation> addReply(@Valid @RequestBody AddReplyRequest addReplyRequest,
-                                                        @AuthenticationPrincipal TPUserPrincipal user
+    public ResponseEntity<ReplyRepresentation> addReply(@Valid @RequestBody AddReplyRequest addReplyRequest
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//            Role principalRole = ((TPUserPrincipal) principal).getRole();
-//        } else {
-//            String username = principal.toString();
-//        }
+        TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
 
-        ReplyRepresentation replyDTO = repliesService.addReply(user, addReplyRequest);
+        ReplyRepresentation replyDTO = repliesService.addReply(principal, addReplyRequest);
         URI replyURI = URI.create("/replies/" + replyDTO.getId());
         return ResponseEntity.created(replyURI).body(replyDTO);
     }
@@ -76,41 +69,34 @@ public class RepliesController {
     @PreAuthorize("hasAuthority('user:update') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public ReplyRepresentation editReply(
             @PathVariable @Min(0) long id,
-            @Valid @RequestBody EditReplyRequest editReplyRequest,
-            @AuthenticationPrincipal TPUserPrincipal user
+            @Valid @RequestBody EditReplyRequest editReplyRequest
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//            Role principalRole = ((TPUserPrincipal) principal).getRole();
-//        } else {
-//            String username = principal.toString();
-//        }
+        TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
 
-        return repliesService.editReply(id, user, editReplyRequest);
+
+        return repliesService.editReply(id, principal, editReplyRequest);
     }
 
+    // ref: https://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
+    // ref: https://www.rfc-editor.org/rfc/rfc7231
+    // If a DELETE method is successfully applied, the origin server SHOULD send a 202 (Accepted) status code if the action will likely succeed but has not yet been enacted (the request has been accepted for processing, but the processing has not been completed), a 204 (No Content) status code if the action has been enacted and no further information is to be supplied, or a 200 (OK) status code if the action has been enacted and the response message includes a representation describing the status.
+    //
+    // ref: https://stackoverflow.com/questions/25970523/restful-what-should-a-delete-response-body-contain
+    // 204 No Content is a popular response for DELETE and occasionally PUT as well. However, if you are implementing HATEOAS, returning a 200 OK with links to follow may be more ideal. This is because a HATEOAS REST API provides context to the client. Instead of returning 204 (No Content), the API should be helpful and suggest places to go.
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('user:delete') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public DeleteReplyResponse deleteReply(
-            @PathVariable @Min(0) long id,
-            @AuthenticationPrincipal TPUserPrincipal user
+            @PathVariable @Min(0) long id
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//            Role principalRole = ((TPUserPrincipal) principal).getRole();
-//        } else {
-//            String username = principal.toString();
-//        }
+        TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
 
-        return repliesService.deleteReply(user, id);
+        return repliesService.deleteReply(principal, id);
     }
 
 //    Exception handling has been moved to GlobalExceptionHandler

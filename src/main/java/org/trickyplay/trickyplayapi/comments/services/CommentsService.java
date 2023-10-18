@@ -184,6 +184,9 @@ public class CommentsService {
             deleteCommentResponse.add(linkTo(methodOn(CommentsController.class)
                     .getCommentsByGameName(commentToDelete.getGameName(), 0, 10, "id", "Asc"))
                     .withRel("collection"));
+            deleteCommentResponse.add(linkTo(methodOn(CommentsController.class)
+                    .deleteComment(idOfTheResourceToBeDeleted))
+                    .withSelfRel());
             commentRepository.deleteById(idOfTheResourceToBeDeleted);
             return deleteCommentResponse;
         } else {

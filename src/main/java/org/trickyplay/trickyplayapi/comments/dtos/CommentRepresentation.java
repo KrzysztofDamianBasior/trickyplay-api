@@ -5,7 +5,7 @@ import lombok.*;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
-import org.trickyplay.trickyplayapi.users.dtos.TPUserPublicInfoDTO;
+import org.trickyplay.trickyplayapi.users.dtos.TPUserRepresentation;
 
 import java.time.LocalDateTime;
 
@@ -19,7 +19,7 @@ public class CommentRepresentation extends RepresentationModel<CommentRepresenta
     private long id;
     private String body;
     private String gameName;
-    private TPUserPublicInfoDTO author;
+    private TPUserRepresentation author;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

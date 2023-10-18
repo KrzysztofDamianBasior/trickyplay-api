@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,20 +66,14 @@ public class CommentsController {
 
     @PostMapping()
     @PreAuthorize("hasAuthority('user:read') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-    public ResponseEntity<CommentRepresentation> addComment(@Valid @RequestBody AddCommentRequest addCommentRequest,
-                                                            @AuthenticationPrincipal TPUserPrincipal user
+    public ResponseEntity<CommentRepresentation> addComment(@Valid @RequestBody AddCommentRequest addCommentRequest
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//            Role principalRole = ((TPUserPrincipal) principal).getRole();
-//        } else {
-//            String username = principal.toString();
-//        }
-        CommentRepresentation commentRepresentation = commentsService.addComment(user, addCommentRequest);
+        TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        CommentRepresentation commentRepresentation = commentsService.addComment(principal, addCommentRequest);
         URI commentURI = URI.create("/comments/" + commentRepresentation.getId());
         return ResponseEntity.created(commentURI).body(commentRepresentation);
     }
@@ -89,40 +83,32 @@ public class CommentsController {
     @PreAuthorize("hasAuthority('user:update') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
     public CommentRepresentation editComment(
             @PathVariable @Min(0) long id,
-            @Valid @RequestBody EditCommentRequest editCommentRequest,
-            @AuthenticationPrincipal TPUserPrincipal user
+            @Valid @RequestBody EditCommentRequest editCommentRequest
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//            Role principalRole = ((TPUserPrincipal) principal).getRole();
-//        } else {
-//            String username = principal.toString();
-//        }
+        TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
 
-        return commentsService.editComment(user, id, editCommentRequest);
+        return commentsService.editComment(principal, id, editCommentRequest);
     }
 
+    // ref: https://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
+    // ref: https://www.rfc-editor.org/rfc/rfc7231
+    // If a DELETE method is successfully applied, the origin server SHOULD send a 202 (Accepted) status code if the action will likely succeed but has not yet been enacted (the request has been accepted for processing, but the processing has not been completed), a 204 (No Content) status code if the action has been enacted and no further information is to be supplied, or a 200 (OK) status code if the action has been enacted and the response message includes a representation describing the status.
+    //
+    // ref: https://stackoverflow.com/questions/25970523/restful-what-should-a-delete-response-body-contain
+    // 204 No Content is a popular response for DELETE and occasionally PUT as well. However, if you are implementing HATEOAS, returning a 200 OK with links to follow may be more ideal. This is because a HATEOAS REST API provides context to the client. Instead of returning 204 (No Content), the API should be helpful and suggest places to go.
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('user:delete') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-    public DeleteCommentResponse deleteComment(@PathVariable @Min(0) long id,
-                                               @AuthenticationPrincipal TPUserPrincipal user
+    public DeleteCommentResponse deleteComment(@PathVariable @Min(0) long id
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//            Role principalRole = ((TPUserPrincipal) principal).getRole();
-//        } else {
-//            String username = principal.toString();
-//        }
+        TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
 
-        return commentsService.deleteComment(user, id);
+        return commentsService.deleteComment(principal, id);
     }
 
 //    Exception handling has been moved to GlobalExceptionHandler

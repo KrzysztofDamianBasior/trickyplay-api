@@ -1,6 +1,7 @@
 package org.trickyplay.trickyplayapi.replies.dtos;
 
 import lombok.*;
+
 import org.springframework.hateoas.RepresentationModel;
 
 import java.util.List;
