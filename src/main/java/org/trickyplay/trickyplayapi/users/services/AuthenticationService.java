@@ -12,9 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import org.trickyplay.trickyplayapi.general.exceptions.RefreshTokenExpiredOrRevokedException;
 import org.trickyplay.trickyplayapi.general.exceptions.RefreshTokenNotFoundException;
 import org.trickyplay.trickyplayapi.general.exceptions.UserNotFoundException;
+import org.trickyplay.trickyplayapi.users.controllers.AuthenticationController;
 import org.trickyplay.trickyplayapi.users.dtos.*;
 import org.trickyplay.trickyplayapi.users.entities.RefreshToken;
 import org.trickyplay.trickyplayapi.users.entities.TPUser;
@@ -90,10 +94,10 @@ public class AuthenticationService {
         var accessToken = jwtService.issueToken(principal);
         var refreshToken = refreshTokenService.createAndSaveRefreshToken(principal.getId());
         log.debug("Successfully authenticated. Security context contains: " + SecurityContextHolder.getContext().getAuthentication());
-        return SignInResponse.builder()
+        SignInResponse signInResponse = SignInResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken.token)
-                .userPublicInfo(TPUserPublicInfoDTO.builder()
+                .userPublicInfo(TPUserRepresentation.builder()
                         .id(principal.getId())
                         .name(principal.getName())
                         .role(principal.getRole())
@@ -101,6 +105,19 @@ public class AuthenticationService {
                         .createdAt(principal.getCreatedAt())
                         .build())
                 .build();
+        signInResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .singleSessionLogout(new RefreshTokenRequest("verySecretRefreshToken")))
+                .withRel("singleSessionLogout"));
+        signInResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .allSessionsLogout())
+                .withRel("allSessionsLogout"));
+        signInResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .refreshAccessToken(new RefreshTokenRequest("verySecretRefreshToken")))
+                .withRel("refreshAccessToken"));
+        signInResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .signIn(new SignInRequest("username", "verySecretPassword")))
+                .withSelfRel());
+        return signInResponse;
     }
 
     public SignOutResponse singleSessionLogout(String refreshToken) {
@@ -111,10 +128,17 @@ public class AuthenticationService {
         tokenRepository.save(storedToken);
         SecurityContextHolder.clearContext();
 
-        return SignOutResponse.builder()
+        SignOutResponse signOutResponse = SignOutResponse.builder()
                 .message("successfully signed out")
                 .numberOfRefreshTokensRemoved(1)
                 .build();
+        signOutResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .signIn(new SignInRequest("username", "verySecretPassword")))
+                .withRel("signIn"));
+        signOutResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .singleSessionLogout(new RefreshTokenRequest("verySecretRefreshToken")))
+                .withSelfRel());
+        return signOutResponse;
     }
 
     public SignOutResponse allSessionsLogout(Long userId) {
@@ -122,13 +146,20 @@ public class AuthenticationService {
                 .orElseThrow(() -> new UserNotFoundException(userId));
         int numberOfRevokedUsers = refreshTokenService.revokeAllUserTokens(user);
         String message = "successfully signed out of all sessions";
-        if(numberOfRevokedUsers == 0){
+        if (numberOfRevokedUsers == 0) {
             message = "not a single account was signed out";
         }
-        return SignOutResponse.builder()
+        SignOutResponse signOutResponse = SignOutResponse.builder()
                 .message(message)
                 .numberOfRefreshTokensRemoved(numberOfRevokedUsers)
                 .build();
+        signOutResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .allSessionsLogout())
+                .withSelfRel());
+        signOutResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .signIn(new SignInRequest(user.getName(), "verySecretPassword")))
+                .withRel("signIn"));
+        return signOutResponse;
     }
 
     @Transactional
@@ -154,7 +185,7 @@ public class AuthenticationService {
         String jwtToken = jwtService.issueToken(principal);
         RefreshToken refreshToken = refreshTokenService.createAndSaveRefreshToken(savedUser);
 
-        var tPUserDTO = TPUserPublicInfoDTO.builder()
+        var tPUserDTO = TPUserRepresentation.builder()
                 .id(savedUser.getId())
                 .name(savedUser.getName())
                 .role(savedUser.getRole())
@@ -162,12 +193,30 @@ public class AuthenticationService {
                 .updatedAt(savedUser.getUpdatedAt())
                 .build();
 
-        return SignInResponse
+        SignInResponse signInResponse = SignInResponse
                 .builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken.token)
                 .userPublicInfo(tPUserDTO)
                 .build();
+
+        signInResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .signUp(new SignUpRequest(request.getUsername(), "verySecretPassword")))
+                .withSelfRel());
+        signInResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .signIn(new SignInRequest(request.getUsername(), "verySecretPassword")))
+                .withRel("signIn"));
+        signInResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .singleSessionLogout(new RefreshTokenRequest("verySecretRefreshToken")))
+                .withRel("singleSessionLogout"));
+        signInResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .allSessionsLogout())
+                .withRel("allSessionsLogout"));
+        signInResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .refreshAccessToken(new RefreshTokenRequest("verySecretRefreshToken")))
+                .withRel("refreshAccessToken"));
+
+        return signInResponse;
     }
 
     public RefreshTokenResponse refreshAccessToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
@@ -183,6 +232,20 @@ public class AuthenticationService {
         TPUser owner = refreshToken.owner;
         TPUserPrincipal principal = new TPUserPrincipal(owner);
         String accessToken = jwtService.issueToken(principal);
-        return new RefreshTokenResponse(accessToken);
+        RefreshTokenResponse refreshTokenResponse = new RefreshTokenResponse(accessToken);
+        refreshTokenResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .refreshAccessToken(new RefreshTokenRequest("verySecretRefreshToken")))
+                .withSelfRel());
+        refreshTokenResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .singleSessionLogout(new RefreshTokenRequest("verySecretRefreshToken")))
+                .withRel("singleSessionLogout"));
+        refreshTokenResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .allSessionsLogout())
+                .withRel("allSessionsLogout"));
+        refreshTokenResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .signIn(new SignInRequest("username", "verySecretPassword")))
+                .withRel("signIn"));
+
+        return refreshTokenResponse;
     }
 }

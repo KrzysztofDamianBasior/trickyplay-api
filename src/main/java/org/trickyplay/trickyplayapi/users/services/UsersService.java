@@ -6,28 +6,38 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import org.trickyplay.trickyplayapi.general.exceptions.UserNotFoundException;
+import org.trickyplay.trickyplayapi.users.controllers.UsersController;
 import org.trickyplay.trickyplayapi.users.dtos.GetUsersResponse;
-import org.trickyplay.trickyplayapi.users.dtos.TPUserPublicInfoDTO;
+import org.trickyplay.trickyplayapi.users.dtos.TPUserRepresentation;
 import org.trickyplay.trickyplayapi.users.entities.TPUser;
+import org.trickyplay.trickyplayapi.users.records.UsersPageArgs;
 import org.trickyplay.trickyplayapi.users.repositories.TPUserRepository;
 
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UsersService {
     private final TPUserRepository userRepository;
-    public GetUsersResponse getUsers(int pageNumber, int pageSize, String sortBy, Sort.Direction sortDirection) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, sortDirection, sortBy);
-        Page<TPUser> userPage = userRepository.findAll(pageable);
-        List<TPUserPublicInfoDTO> users = UserUtils.mapToTPUserPublicInfoDTOs(userPage.getContent());
 
-        return GetUsersResponse.builder()
+    public GetUsersResponse getUsers(UsersPageArgs usersPageArgs) {
+        Pageable pageable = PageRequest.of(
+                usersPageArgs.pageNumber(),
+                usersPageArgs.pageSize(),
+                usersPageArgs.orderDirection(),
+                usersPageArgs.sortBy()
+        );
+        Page<TPUser> userPage = userRepository.findAll(pageable);
+        List<TPUserRepresentation> users = UserUtils.mapToTPUserPublicInfoDTOs(userPage.getContent());
+
+        GetUsersResponse getUsersResponse = GetUsersResponse.builder()
                 .users(users)
                 .pageSize(userPage.getSize())
                 .totalElements(userPage.getTotalElements())
@@ -36,19 +46,28 @@ public class UsersService {
                 .pageNumber(userPage.getNumber())
                 .isLast(userPage.isLast())
                 .build();
+        getUsersResponse.add(linkTo(methodOn(UsersController.class)
+                .getUsers(
+                        usersPageArgs.pageNumber(),
+                        usersPageArgs.pageSize(),
+                        usersPageArgs.sortBy(),
+                        usersPageArgs.orderDirection().name()
+                )).withSelfRel());
+
+        return getUsersResponse;
     }
 
-    public TPUserPublicInfoDTO getUser(long id) {
+    public TPUserRepresentation getUser(long id) {
         return userRepository.findById(id)
                 .map(UserUtils::mapToTPUserPublicInfoDTO)
                 .orElseThrow(() -> new UserNotFoundException(id));
     }
 
-    public boolean checkIfUserExistsById(long id){
+    public boolean checkIfUserExistsById(long id) {
         return userRepository.existsById(id);
     }
 
-    public boolean checkIfUserExistsByName(String name){
+    public boolean checkIfUserExistsByName(String name) {
         return userRepository.existsByName(name);
     }
 }

@@ -6,13 +6,13 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import org.trickyplay.trickyplayapi.users.dtos.DeleteAccountResponse;
 import org.trickyplay.trickyplayapi.users.dtos.EditAccountRequest;
-import org.trickyplay.trickyplayapi.users.dtos.TPUserPublicInfoDTO;
+import org.trickyplay.trickyplayapi.users.dtos.TPUserRepresentation;
 import org.trickyplay.trickyplayapi.users.models.TPUserPrincipal;
 import org.trickyplay.trickyplayapi.users.services.AccountService;
 
@@ -25,21 +25,15 @@ public class AccountController {
 
     @GetMapping()
     @PreAuthorize("isAuthenticated()")
-    public TPUserPublicInfoDTO getMyAccount(
-            @AuthenticationPrincipal TPUserPrincipal user
+    public TPUserRepresentation getMyAccount(
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//            Role principalRole = ((TPUserPrincipal) principal).getRole();
-//        } else {
-//            String username = principal.toString();
-//        }
+        Object principal = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+        long principalId = ((TPUserPrincipal) principal).getId();
 
-        return accountService.getAccount(user.getId());
+        return accountService.getAccount(principalId);
     }
 
     // ref: https://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
@@ -51,45 +45,33 @@ public class AccountController {
     @DeleteMapping("/")
     @PreAuthorize("isAuthenticated()")
     public DeleteAccountResponse deleteAccount(
-            @AuthenticationPrincipal TPUserPrincipal user
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//            Role principalRole = ((TPUserPrincipal) principal).getRole();
-//        } else {
-//            String username = principal.toString();
-//        }
+        Object principal = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+        long principalId = ((TPUserPrincipal) principal).getId();
 
-        return accountService.deleteAccount(user.getId());
+        return accountService.deleteAccount(principalId);
     }
 
     @PatchMapping()
     @PreAuthorize("isAuthenticated()")
-    public TPUserPublicInfoDTO editAccount(@Valid @RequestBody EditAccountRequest editAccountRequest,
-                                           @AuthenticationPrincipal TPUserPrincipal user
+    public TPUserRepresentation editAccount(@Valid @RequestBody EditAccountRequest editAccountRequest
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//            Role principalRole = ((TPUserPrincipal) principal).getRole();
-//        } else {
-//            String username = principal.toString();
-//        }
+        Object principal = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+        long principalId = ((TPUserPrincipal) principal).getId();
 
-        return accountService.editAccount(user.getId(), editAccountRequest);
+        return accountService.editAccount(principalId, editAccountRequest);
     }
 
     @PatchMapping("/{id}/ban-account")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasAuthority('admin:update')")
-    public TPUserPublicInfoDTO banAccount(@PathVariable @Min(0) long id,
-                                          @AuthenticationPrincipal TPUserPrincipal user
+    public TPUserRepresentation banAccount(@PathVariable @Min(0) long id
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
 //        Object principal = SecurityContextHolder.getContext()
 //                .getAuthentication()
@@ -107,38 +89,26 @@ public class AccountController {
 
     @PatchMapping("/{id}/unban-account")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasAuthority('admin:update')")
-    public TPUserPublicInfoDTO unbanAccount(@PathVariable @Min(0) long id,
-                                            @AuthenticationPrincipal TPUserPrincipal user
+    public TPUserRepresentation unbanAccount(@PathVariable @Min(0) long id
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
 //        Object principal = SecurityContextHolder.getContext()
 //                .getAuthentication()
 //                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//            Role principalRole = ((TPUserPrincipal) principal).getRole();
-//        } else {
-//            String username = principal.toString();
-//        }
+//        long principalId = ((TPUserPrincipal) principal).getId();
 
         return accountService.unbanAccount(id);
     }
 
     @PatchMapping("/{id}/grant-admin-permissions")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasAuthority('admin:update')")
-    public TPUserPublicInfoDTO grantAdminPermissions(@PathVariable @Min(0) long id,
-                                                     @AuthenticationPrincipal TPUserPrincipal user
+    public TPUserRepresentation grantAdminPermissions(@PathVariable @Min(0) long id
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
 //        Object principal = SecurityContextHolder.getContext()
 //                .getAuthentication()
 //                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//            Role principalRole = ((TPUserPrincipal) principal).getRole();
-//        } else {
-//            String username = principal.toString();
-//        }
+//        long principalId = ((TPUserPrincipal) principal).getId();
 
         return accountService.grantAdminPermissions(id);
     }

@@ -1,9 +1,8 @@
 package org.trickyplay.trickyplayapi.users.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import org.springframework.hateoas.RepresentationModel;
 
 import java.util.List;
 
@@ -11,11 +10,12 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class GetUsersResponse {
+@EqualsAndHashCode(callSuper = false)
+public class GetUsersResponse extends RepresentationModel {
     private long totalElements;
     private int totalPages;
     private int pageSize;
     private int pageNumber;
     private boolean isLast;
-    private List<TPUserPublicInfoDTO> users;
+    private List<TPUserRepresentation> users;
 }

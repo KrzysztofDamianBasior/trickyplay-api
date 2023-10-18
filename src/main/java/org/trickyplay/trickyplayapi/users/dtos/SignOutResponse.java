@@ -1,15 +1,15 @@
 package org.trickyplay.trickyplayapi.users.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
+
+import org.springframework.hateoas.RepresentationModel;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SignOutResponse {
+@EqualsAndHashCode(callSuper = false)
+public class SignOutResponse extends RepresentationModel {
     private int numberOfRefreshTokensRemoved;
     private String message;
 }

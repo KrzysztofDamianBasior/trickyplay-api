@@ -17,7 +17,8 @@ import org.trickyplay.trickyplayapi.replies.dtos.GetRepliesResponse;
 import org.trickyplay.trickyplayapi.replies.records.RepliesPageArgs;
 import org.trickyplay.trickyplayapi.replies.services.RepliesService;
 import org.trickyplay.trickyplayapi.users.dtos.GetUsersResponse;
-import org.trickyplay.trickyplayapi.users.dtos.TPUserPublicInfoDTO;
+import org.trickyplay.trickyplayapi.users.dtos.TPUserRepresentation;
+import org.trickyplay.trickyplayapi.users.records.UsersPageArgs;
 import org.trickyplay.trickyplayapi.users.services.UsersService;
 
 @Validated
@@ -41,12 +42,13 @@ public class UsersController {
 //        Set<String> orderValues = Set.of("Asc", "Dsc");
 //        Sort.Direction sortDirection = orderValues.contains(orderDirection) ? Sort.Direction.fromString(orderDirection) : Sort.Direction.ASC;
         Sort.Direction sortDirection = Sort.Direction.fromString(orderDirection);
-        return usersService.getUsers(pageNumber, pageSize, sortBy, sortDirection);
+        UsersPageArgs usersPageArgs = new UsersPageArgs(pageNumber, pageSize, sortBy, sortDirection);
+        return usersService.getUsers(usersPageArgs);
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("permitAll()")
-    public TPUserPublicInfoDTO getUser(@PathVariable @Min(0) long id) {
+    public TPUserRepresentation getUser(@PathVariable @Min(0) long id) {
         return usersService.getUser(id);
     }
 

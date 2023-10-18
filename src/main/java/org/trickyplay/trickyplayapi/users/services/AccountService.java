@@ -5,12 +5,18 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import org.trickyplay.trickyplayapi.general.exceptions.OperationNotAllowedException;
 import org.trickyplay.trickyplayapi.general.exceptions.UserNotFoundException;
+import org.trickyplay.trickyplayapi.users.controllers.AccountController;
+import org.trickyplay.trickyplayapi.users.controllers.AuthenticationController;
+import org.trickyplay.trickyplayapi.users.controllers.UsersController;
 import org.trickyplay.trickyplayapi.users.dtos.DeleteAccountResponse;
 import org.trickyplay.trickyplayapi.users.dtos.EditAccountRequest;
-import org.trickyplay.trickyplayapi.users.dtos.TPUserPublicInfoDTO;
+import org.trickyplay.trickyplayapi.users.dtos.SignUpRequest;
+import org.trickyplay.trickyplayapi.users.dtos.TPUserRepresentation;
 import org.trickyplay.trickyplayapi.users.entities.TPUser;
 import org.trickyplay.trickyplayapi.users.enums.Role;
 import org.trickyplay.trickyplayapi.users.repositories.TPUserRepository;
@@ -25,7 +31,7 @@ public class AccountService {
     private final TPUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public TPUserPublicInfoDTO grantAdminPermissions(long idOfTheUserToWhomPermissionsAreGranted) {
+    public TPUserRepresentation grantAdminPermissions(long idOfTheUserToWhomPermissionsAreGranted) {
         TPUser user = userRepository.findById(idOfTheUserToWhomPermissionsAreGranted)
                 .orElseThrow(() -> new UserNotFoundException(idOfTheUserToWhomPermissionsAreGranted));
         if(user.getRole().equals(Role.ADMIN)){
@@ -36,7 +42,7 @@ public class AccountService {
         return UserUtils.mapToTPUserPublicInfoDTO(savedUser);
     }
 
-    public TPUserPublicInfoDTO getAccount(long id) {
+    public TPUserRepresentation getAccount(long id) {
         return userRepository.findById(id)
                 .map(UserUtils::mapToTPUserPublicInfoDTO)
                 .orElseThrow(() -> new UserNotFoundException(id));
@@ -44,12 +50,22 @@ public class AccountService {
 
     public DeleteAccountResponse deleteAccount(long id) {
         userRepository.deleteById(id);
-        return DeleteAccountResponse.builder()
+        DeleteAccountResponse deleteAccountResponse = DeleteAccountResponse.builder()
                 .message("The account for user with id: " + id + " has been removed")
                 .build();
+        deleteAccountResponse.add(linkTo(methodOn(AccountController.class)
+                .deleteAccount())
+                .withSelfRel());
+        deleteAccountResponse.add(linkTo(methodOn(UsersController.class)
+                .getUsers(0, 10, "id", "Asc"))
+                .withRel("collection"));
+        deleteAccountResponse.add(linkTo(methodOn(AuthenticationController.class)
+                .signUp(new SignUpRequest("username", "password")))
+                .withRel("signUp"));
+        return deleteAccountResponse;
     }
 
-    public TPUserPublicInfoDTO editAccount(long accountOwnerId, EditAccountRequest editAccountRequest) {
+    public TPUserRepresentation editAccount(long accountOwnerId, EditAccountRequest editAccountRequest) {
         TPUser user = userRepository.findById(accountOwnerId)
                 .orElseThrow(() -> new UserNotFoundException(accountOwnerId));
         if (editAccountRequest.getNewUsername() != null) {
@@ -64,7 +80,7 @@ public class AccountService {
         return UserUtils.mapToTPUserPublicInfoDTO(savedUser);
     }
 
-    public TPUserPublicInfoDTO banAccount(long id) {
+    public TPUserRepresentation banAccount(long id) {
         TPUser user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         if(user.getRole().equals(Role.ADMIN)){
@@ -75,7 +91,7 @@ public class AccountService {
         return UserUtils.mapToTPUserPublicInfoDTO(savedUser);
     }
 
-    public TPUserPublicInfoDTO unbanAccount(long id) {
+    public TPUserRepresentation unbanAccount(long id) {
         TPUser user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         if(user.getRole().equals(Role.ADMIN)){

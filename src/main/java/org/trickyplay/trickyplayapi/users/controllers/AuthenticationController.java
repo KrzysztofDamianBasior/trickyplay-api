@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,17 +67,14 @@ public class AuthenticationController {
 
     @DeleteMapping("/all-sessions-logout")
     @PreAuthorize("isAuthenticated()") // SecurityContextHolder.getContext().getAuthentication().isAuthenticated()
-    public SignOutResponse allSessionsLogout(@AuthenticationPrincipal TPUserPrincipal user) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//        } else {
-//            String username = principal.toString();
-//        }
+    public SignOutResponse allSessionsLogout(
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
+    ) {
+        Object principal = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+        long principalId = ((TPUserPrincipal) principal).getId();
 
-        return authenticationService.allSessionsLogout(user.getId());
+        return authenticationService.allSessionsLogout(principalId);
     }
 }

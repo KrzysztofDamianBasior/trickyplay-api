@@ -1,14 +1,14 @@
 package org.trickyplay.trickyplayapi.users.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import org.springframework.hateoas.RepresentationModel;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RefreshTokenResponse {
+@EqualsAndHashCode(callSuper = false)
+public class RefreshTokenResponse extends RepresentationModel {
     private String accessToken;
 }
