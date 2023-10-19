@@ -1,5 +1,6 @@
 package org.trickyplay.trickyplayapi.users.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 
@@ -19,7 +20,13 @@ import org.trickyplay.trickyplayapi.replies.services.RepliesService;
 import org.trickyplay.trickyplayapi.users.dtos.GetUsersResponse;
 import org.trickyplay.trickyplayapi.users.dtos.TPUserRepresentation;
 import org.trickyplay.trickyplayapi.users.records.UsersPageArgs;
+import org.trickyplay.trickyplayapi.users.services.PDFGeneratorService;
 import org.trickyplay.trickyplayapi.users.services.UsersService;
+
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @Validated
 @RestController
@@ -29,6 +36,7 @@ public class UsersController {
     private final UsersService usersService;
     private final CommentsService commentsService;
     private final RepliesService repliesService;
+    private final PDFGeneratorService pdfGeneratorService;
 
     @GetMapping("/feed")
     @PreAuthorize("permitAll()")
@@ -84,6 +92,19 @@ public class UsersController {
         Sort.Direction sortDirection = Sort.Direction.fromString(orderDirection);
         RepliesPageArgs repliesPageArgs = new RepliesPageArgs(pageNumber, pageSize, sortBy, sortDirection);
         return repliesService.getRepliesByAuthorId(id, repliesPageArgs);
+    }
+
+    @GetMapping("/{id}/activity-summary")
+    public void generatePDF(@PathVariable @Min(0) long id, HttpServletResponse response) throws IOException {
+        response.setContentType("application/pdf");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=activity-summary_" + currentDateTime + ".pdf";
+        response.setHeader(headerKey, headerValue);
+
+        this.pdfGeneratorService.export(id, response);
     }
 }
 

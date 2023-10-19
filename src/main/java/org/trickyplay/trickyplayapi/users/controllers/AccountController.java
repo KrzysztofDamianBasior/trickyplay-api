@@ -1,7 +1,12 @@
 package org.trickyplay.trickyplayapi.users.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,6 +20,7 @@ import org.trickyplay.trickyplayapi.users.dtos.EditAccountRequest;
 import org.trickyplay.trickyplayapi.users.dtos.TPUserRepresentation;
 import org.trickyplay.trickyplayapi.users.models.TPUserPrincipal;
 import org.trickyplay.trickyplayapi.users.services.AccountService;
+import org.trickyplay.trickyplayapi.users.services.PDFGeneratorService;
 
 @Validated // validate parameters that are passed into a method
 @RestController
@@ -22,6 +28,26 @@ import org.trickyplay.trickyplayapi.users.services.AccountService;
 @RequestMapping("account")
 public class AccountController {
     private final AccountService accountService;
+    private final PDFGeneratorService pdfGeneratorService;
+
+    @GetMapping("/activity-summary")
+    @PreAuthorize("isAuthenticated()")
+    public void generatePDF(HttpServletResponse response) throws IOException {
+        response.setContentType("application/pdf");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=activity-summary_" + currentDateTime + ".pdf";
+        response.setHeader(headerKey, headerValue);
+
+        Object principal = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+        long principalId = ((TPUserPrincipal) principal).getId();
+
+        this.pdfGeneratorService.export(principalId, response);
+    }
 
     @GetMapping()
     @PreAuthorize("isAuthenticated()")
