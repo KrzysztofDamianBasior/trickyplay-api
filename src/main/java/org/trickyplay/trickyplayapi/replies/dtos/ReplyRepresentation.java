@@ -5,6 +5,7 @@ import lombok.*;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
+import org.trickyplay.trickyplayapi.comments.dtos.CommentRepresentation;
 import org.trickyplay.trickyplayapi.users.dtos.TPUserRepresentation;
 
 import java.time.LocalDateTime;
@@ -21,4 +22,5 @@ public class ReplyRepresentation extends RepresentationModel<ReplyRepresentation
     private TPUserRepresentation author;
     private LocalDateTime createdAt; //ISO-8601 UTC
     private LocalDateTime updatedAt; //ISO-8601 UTC
+    private CommentRepresentation parentComment;
 }

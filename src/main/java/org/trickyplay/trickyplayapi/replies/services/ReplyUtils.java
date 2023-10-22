@@ -1,5 +1,6 @@
 package org.trickyplay.trickyplayapi.replies.services;
 
+import org.trickyplay.trickyplayapi.comments.services.CommentUtils;
 import org.trickyplay.trickyplayapi.replies.controllers.RepliesController;
 import org.trickyplay.trickyplayapi.replies.dtos.ReplyRepresentation;
 import org.trickyplay.trickyplayapi.replies.entities.Reply;
@@ -26,6 +27,7 @@ public class ReplyUtils {
                 .author(UserUtils.mapToTPUserPublicInfoDTO(reply.getAuthor()))
                 .createdAt(reply.getCreatedAt())
                 .updatedAt(reply.getUpdatedAt())
+                .parentComment(CommentUtils.mapToCommentDTO(reply.getParentComment()))
                 .build();
 
         replyRepresentation.add(linkTo(methodOn(RepliesController.class)
