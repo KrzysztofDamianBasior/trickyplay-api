@@ -54,20 +54,25 @@ public class AuthenticationController {
         return ResponseEntity.created(userURI).body(signInResponse);
     }
 
-    @GetMapping("/refresh-access-token")
+    // Intuitively, a get request is the right solution for retrieving a new refresh token, however, this operation requires a secret password that should not be sent in the URL, and a get request does not allow the request body to have a semantic meaning
+    // Moreover, the problem in sending the secret in the get request body is the javascript engine. According to the documentation and the spec XMLHttpRequest ignores the body of the request in case the method is GET. If you perform a request in Chrome/Electron with XMLHttpRequest and you try to put a json body in the send method this just gets ignored. Using fetch which is the modern replacement for XMLHtppRequest also seems to fail in Chrome/Electron.
+    // From the HTTP 1.1 2014 Spec: A payload within a GET request message has no defined semantics; sending a payload body on a GET request might cause some existing implementations to reject the request.
+    @PostMapping("/refresh-access-token")
     public RefreshTokenResponse refreshAccessToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
         return authenticationService.refreshAccessToken(refreshTokenRequest);
     }
 
     // Logout ensure that all sensitive information is removed or invalidated once user performs the logout.
-    @DeleteMapping("/single-session-logout")
-    public SignOutResponse singleSessionLogout(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+    // For reasons similar to why requesting a refresh-token requires a post request rather than a get request, a logout request must be a post request rather than a delete request. Secret information should not be saved in the url. If sending in the request body is required, use the post or put methods
+    @PostMapping("/single-session-sign-out")
+    public SignOutResponse singleSessionSignOut(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
         return authenticationService.singleSessionLogout(refreshTokenRequest.getRefreshToken());
     }
 
-    @DeleteMapping("/all-sessions-logout")
+    // For consistency with single session logout, multi-session logout should also be handled by a post request rather than a delete request
+    @PostMapping("/all-sessions-sign-out")
     @PreAuthorize("isAuthenticated()") // SecurityContextHolder.getContext().getAuthentication().isAuthenticated()
-    public SignOutResponse allSessionsLogout(
+    public SignOutResponse allSessionsSignOut(
 //            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
         Object principal = SecurityContextHolder.getContext()

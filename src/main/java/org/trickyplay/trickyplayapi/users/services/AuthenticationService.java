@@ -106,10 +106,10 @@ public class AuthenticationService {
                         .build())
                 .build();
         signInResponse.add(linkTo(methodOn(AuthenticationController.class)
-                .singleSessionLogout(new RefreshTokenRequest("verySecretRefreshToken")))
+                .singleSessionSignOut(new RefreshTokenRequest("verySecretRefreshToken")))
                 .withRel("singleSessionLogout"));
         signInResponse.add(linkTo(methodOn(AuthenticationController.class)
-                .allSessionsLogout())
+                .allSessionsSignOut())
                 .withRel("allSessionsLogout"));
         signInResponse.add(linkTo(methodOn(AuthenticationController.class)
                 .refreshAccessToken(new RefreshTokenRequest("verySecretRefreshToken")))
@@ -136,7 +136,7 @@ public class AuthenticationService {
                 .signIn(new SignInRequest("username", "verySecretPassword")))
                 .withRel("signIn"));
         signOutResponse.add(linkTo(methodOn(AuthenticationController.class)
-                .singleSessionLogout(new RefreshTokenRequest("verySecretRefreshToken")))
+                .singleSessionSignOut(new RefreshTokenRequest("verySecretRefreshToken")))
                 .withSelfRel());
         return signOutResponse;
     }
@@ -154,7 +154,7 @@ public class AuthenticationService {
                 .numberOfRefreshTokensRemoved(numberOfRevokedUsers)
                 .build();
         signOutResponse.add(linkTo(methodOn(AuthenticationController.class)
-                .allSessionsLogout())
+                .allSessionsSignOut())
                 .withSelfRel());
         signOutResponse.add(linkTo(methodOn(AuthenticationController.class)
                 .signIn(new SignInRequest(user.getName(), "verySecretPassword")))
@@ -207,10 +207,10 @@ public class AuthenticationService {
                 .signIn(new SignInRequest(request.getUsername(), "verySecretPassword")))
                 .withRel("signIn"));
         signInResponse.add(linkTo(methodOn(AuthenticationController.class)
-                .singleSessionLogout(new RefreshTokenRequest("verySecretRefreshToken")))
+                .singleSessionSignOut(new RefreshTokenRequest("verySecretRefreshToken")))
                 .withRel("singleSessionLogout"));
         signInResponse.add(linkTo(methodOn(AuthenticationController.class)
-                .allSessionsLogout())
+                .allSessionsSignOut())
                 .withRel("allSessionsLogout"));
         signInResponse.add(linkTo(methodOn(AuthenticationController.class)
                 .refreshAccessToken(new RefreshTokenRequest("verySecretRefreshToken")))
@@ -237,10 +237,10 @@ public class AuthenticationService {
                 .refreshAccessToken(new RefreshTokenRequest("verySecretRefreshToken")))
                 .withSelfRel());
         refreshTokenResponse.add(linkTo(methodOn(AuthenticationController.class)
-                .singleSessionLogout(new RefreshTokenRequest("verySecretRefreshToken")))
+                .singleSessionSignOut(new RefreshTokenRequest("verySecretRefreshToken")))
                 .withRel("singleSessionLogout"));
         refreshTokenResponse.add(linkTo(methodOn(AuthenticationController.class)
-                .allSessionsLogout())
+                .allSessionsSignOut())
                 .withRel("allSessionsLogout"));
         refreshTokenResponse.add(linkTo(methodOn(AuthenticationController.class)
                 .signIn(new SignInRequest("username", "verySecretPassword")))

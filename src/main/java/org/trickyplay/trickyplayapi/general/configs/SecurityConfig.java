@@ -158,8 +158,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/account").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.BANNED.name())
                         .requestMatchers(HttpMethod.DELETE, "/account").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.BANNED.name())
                         .requestMatchers(HttpMethod.GET, "/account").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.BANNED.name())
-                        .requestMatchers(HttpMethod.PATCH, "/account/{id}/ban-account", "/account/{id}/unban-account").hasRole(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.PATCH, "/account/{id}/grant-admin-permissions").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.PATCH, "/users/{id}/ban-account", "/users/{id}/unban-account").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.PATCH, "/users/{id}/grant-admin-permissions").hasRole(Role.ADMIN.name())
                         .anyRequest().authenticated()
                 );
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

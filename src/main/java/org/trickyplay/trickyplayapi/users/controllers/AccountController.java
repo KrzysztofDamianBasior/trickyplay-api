@@ -67,7 +67,7 @@ public class AccountController {
     //
     // ref: https://stackoverflow.com/questions/25970523/restful-what-should-a-delete-response-body-contain
     // 204 No Content is a popular response for DELETE and occasionally PUT as well. However, if you are implementing HATEOAS, returning a 200 OK with links to follow may be more ideal. This is because a HATEOAS REST API provides context to the client. Instead of returning 204 (No Content), the API should be helpful and suggest places to go.
-    @DeleteMapping("/")
+    @DeleteMapping()
     @PreAuthorize("isAuthenticated()")
     public DeleteAccountResponse deleteAccount( // delete all information about the user along with comments and replies
 //            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
