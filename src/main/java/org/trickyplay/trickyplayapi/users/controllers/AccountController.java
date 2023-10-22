@@ -2,7 +2,6 @@ package org.trickyplay.trickyplayapi.users.controllers;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -70,7 +69,7 @@ public class AccountController {
     // 204 No Content is a popular response for DELETE and occasionally PUT as well. However, if you are implementing HATEOAS, returning a 200 OK with links to follow may be more ideal. This is because a HATEOAS REST API provides context to the client. Instead of returning 204 (No Content), the API should be helpful and suggest places to go.
     @DeleteMapping("/")
     @PreAuthorize("isAuthenticated()")
-    public DeleteAccountResponse deleteAccount(
+    public DeleteAccountResponse deleteAccount( // delete all information about the user along with comments and replies
 //            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
         Object principal = SecurityContextHolder.getContext()
@@ -83,7 +82,7 @@ public class AccountController {
 
     @PatchMapping()
     @PreAuthorize("isAuthenticated()")
-    public TPUserRepresentation editAccount(@Valid @RequestBody EditAccountRequest editAccountRequest
+    public TPUserRepresentation editAccount(@Valid @RequestBody EditAccountRequest editAccountRequest // change username or password
 //            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
     ) {
         Object principal = SecurityContextHolder.getContext()
@@ -92,50 +91,5 @@ public class AccountController {
         long principalId = ((TPUserPrincipal) principal).getId();
 
         return accountService.editAccount(principalId, editAccountRequest);
-    }
-
-    @PatchMapping("/{id}/ban-account")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasAuthority('admin:update')")
-    public TPUserRepresentation banAccount(@PathVariable @Min(0) long id
-//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
-    ) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        if (principal instanceof TPUserPrincipal) {
-//            String username = ((TPUserPrincipal) principal).getUsername();
-//            long principalId = ((TPUserPrincipal) principal).getId();
-//            Role principalRole = ((TPUserPrincipal) principal).getRole();
-//        } else {
-//            String username = principal.toString();
-//        }
-
-        return accountService.banAccount(id);
-    }
-
-    @PatchMapping("/{id}/unban-account")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasAuthority('admin:update')")
-    public TPUserRepresentation unbanAccount(@PathVariable @Min(0) long id
-//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
-    ) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        long principalId = ((TPUserPrincipal) principal).getId();
-
-        return accountService.unbanAccount(id);
-    }
-
-    @PatchMapping("/{id}/grant-admin-permissions")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasAuthority('admin:update')")
-    public TPUserRepresentation grantAdminPermissions(@PathVariable @Min(0) long id
-//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
-    ) {
-//        Object principal = SecurityContextHolder.getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//        long principalId = ((TPUserPrincipal) principal).getId();
-
-        return accountService.grantAdminPermissions(id);
     }
 }

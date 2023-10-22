@@ -106,5 +106,50 @@ public class UsersController {
 
         this.pdfGeneratorService.export(id, response);
     }
+
+    @PatchMapping("/{id}/ban")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasAuthority('admin:update')")
+    public TPUserRepresentation ban(@PathVariable @Min(0) long id
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
+    ) {
+//        Object principal = SecurityContextHolder.getContext()
+//                .getAuthentication()
+//                .getPrincipal();
+//        if (principal instanceof TPUserPrincipal) {
+//            String username = ((TPUserPrincipal) principal).getUsername();
+//            long principalId = ((TPUserPrincipal) principal).getId();
+//            Role principalRole = ((TPUserPrincipal) principal).getRole();
+//        } else {
+//            String username = principal.toString();
+//        }
+
+        return usersService.banUser(id);
+    }
+
+    @PatchMapping("/{id}/unban")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasAuthority('admin:update')")
+    public TPUserRepresentation unban(@PathVariable @Min(0) long id
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
+    ) {
+//        Object principal = SecurityContextHolder.getContext()
+//                .getAuthentication()
+//                .getPrincipal();
+//        long principalId = ((TPUserPrincipal) principal).getId();
+
+        return usersService.unbanUser(id);
+    }
+
+    @PatchMapping("/{id}/grant-admin-permissions")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasAuthority('admin:update')")
+    public TPUserRepresentation grantAdminPermissions(@PathVariable @Min(0) long id
+//            @AuthenticationPrincipal TPUserPrincipal user // hateoas methodOn does not allow the controller to accept principal as an argument
+    ) {
+//        Object principal = SecurityContextHolder.getContext()
+//                .getAuthentication()
+//                .getPrincipal();
+//        long principalId = ((TPUserPrincipal) principal).getId();
+
+        return usersService.grantAdminPermissions(id);
+    }
 }
 
