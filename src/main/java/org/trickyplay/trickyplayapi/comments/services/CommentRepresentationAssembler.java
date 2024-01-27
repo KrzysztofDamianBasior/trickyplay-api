@@ -17,7 +17,6 @@ import org.trickyplay.trickyplayapi.users.services.UserUtils;
 @Data
 @Service
 public class CommentRepresentationAssembler implements RepresentationModelAssembler<Comment, CommentRepresentation> {
-    // Spring hateoas provides a ready-made solution for components that convert a domain type into a RepresentationModel., but it will not be used because this API returns a more custom solution
 
     @Override
     public CommentRepresentation toModel(Comment comment) {
