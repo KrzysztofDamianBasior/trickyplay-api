@@ -22,6 +22,7 @@ public interface ReplyRepository extends JpaRepository<Reply, Long> {
 
     List<Reply> findAllByIdIn(List<Long> ids); // where x.id in ?1
 
+    // The findAllRepliesWith query below is equivalent to the findAll query because the author field in the Reply entity is in the @ManyToOne relationship with the TPUser entity, and the default fetch type for @ManyToOne is fetch = FetchType.EAGER
     @Query("Select r from Reply r left join fetch r.author")
-    List<Reply> findAllRepliesWithAuthors(Pageable page);
+    Page<Reply> findAllRepliesWithAuthors(Pageable page);
 }
