@@ -41,8 +41,6 @@ public class TPUser {
     private String name;
 
     @NotNull
-    @Length(min = 4, max = 32)
-    @Pattern(regexp = "^(?=.*[0-9])[a-zA-Z0-9_]{4,32}$", message = "Password must contain between 4 and 32 characters. It must contain at least one number. The password can only consist of underscores, numbers, lowercase and uppercase letters.")
     @Column(nullable = false, length = 64)
     private String password;
 
