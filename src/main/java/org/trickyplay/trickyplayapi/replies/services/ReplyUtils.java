@@ -42,7 +42,7 @@ public class ReplyUtils {
         return replyRepresentation;
     }
 
-    private List<Reply> extractRepliesBelongingToComment(List<Reply> replies, long commentId) {
+    static List<Reply> extractRepliesThatBelongToComment(List<Reply> replies, long commentId) {
         return replies.stream()
                 .filter(reply -> reply.getParentComment().getId() == commentId)
                 .collect(Collectors.toList());
