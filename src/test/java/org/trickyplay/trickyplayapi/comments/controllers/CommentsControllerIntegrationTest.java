@@ -2,6 +2,7 @@ package org.trickyplay.trickyplayapi.comments.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -28,6 +29,7 @@ import org.trickyplay.trickyplayapi.users.repositories.TPUserRepository;
 import org.trickyplay.trickyplayapi.users.services.JwtService;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 //    use the following naming convention: Given_Preconditions_When_StateUnderTest_Then_ExpectedBehavior — Behavior-Driven Development (BDD)
 
@@ -170,20 +172,53 @@ class CommentsControllerIntegrationTest extends BaseIntegrationTest {
         Long secondCommentStubId = commentsRepository.save(secondCommentStub).getId();
         commentsRepository.saveAndFlush(thirdCommentStub);
 
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/comments/feed")
+        mockMvc.perform(MockMvcRequestBuilders.get("/comments/feed")
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                         .param("gameName", "badGameName")
+                        .param("pageNumber", "0")
+                        .param("pageSize", "10")
+                        .param("sortBy", "id")
+                        .param("orderDirection", "Asc")
+                )
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        mockMvc.perform(MockMvcRequestBuilders.get("/comments/feed")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .param("gameName", "Snake")
                         .param("pageNumber", "invalidPageNumber")
+                        .param("pageSize", "10")
+                        .param("sortBy", "id")
+                        .param("orderDirection", "Asc"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        mockMvc.perform(MockMvcRequestBuilders.get("/comments/feed")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .param("gameName", "Snake")
+                        .param("pageNumber", "0")
                         .param("pageSize", "-1")
+                        .param("sortBy", "id")
+                        .param("orderDirection", "Asc")
+                )
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        mockMvc.perform(MockMvcRequestBuilders.get("/comments/feed")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .param("gameName", "Snake")
+                        .param("pageNumber", "0")
+                        .param("pageSize", "10")
                         .param("sortBy", "test")
+                        .param("orderDirection", "Asc")
+                )
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        mockMvc.perform(MockMvcRequestBuilders.get("/comments/feed")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .param("gameName", "Snake")
+                        .param("pageNumber", "0")
+                        .param("pageSize", "10")
+                        .param("sortBy", "id")
                         .param("orderDirection", "badDirection")
                 )
-//                .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andReturn();
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
-    // getCommentsByAuthorId tests -----------------------------------------------
+    // getSingleComment tests -----------------------------------------------
     @Test
     @Transactional
     void given_1User1CommentSavedInDB_when_commentsGetEndpointIsHitWithValidPathVar_then_returnCorrespondingCommentRepresentation() throws Exception {
@@ -203,11 +238,11 @@ class CommentsControllerIntegrationTest extends BaseIntegrationTest {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        tpUserRepository.save(tpUserStub);
-        commentsRepository.saveAndFlush(commentStub);
+        TPUser savedTPUserStub = tpUserRepository.save(tpUserStub);
+        Comment savedCommentStub = commentsRepository.save(commentStub);
 
         MvcResult mvcResult = mockMvc.perform(
-                        MockMvcRequestBuilders.get("/comments/{id}", 1L)
+                        MockMvcRequestBuilders.get("/comments/{id}", savedCommentStub.getId())
                                 .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                 )
 //                .andDo(MockMvcResultHandlers.print())
@@ -215,9 +250,14 @@ class CommentsControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(MockMvcResultMatchers.content().contentType("application/hal+json"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(commentStub.getId()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.gameName").value(commentStub.getGameName()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.updatedAt").exists())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").exists())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.body").value(commentStub.getBody()))
+                .andDo(requestResult -> {
+                    String json = requestResult.getResponse().getContentAsString();
+                    LocalDateTime createdAt = LocalDateTime.parse(JsonPath.parse(json).read("$.updatedAt").toString(), DateTimeFormatter.ISO_DATE_TIME);
+                    LocalDateTime updatedAt = LocalDateTime.parse(JsonPath.parse(json).read("$.createdAt").toString(), DateTimeFormatter.ISO_DATE_TIME);
+                    assertThat(createdAt).isEqualTo(savedCommentStub.getCreatedAt());
+                    assertThat(updatedAt).isEqualTo(savedCommentStub.getUpdatedAt());
+                })
                 .andReturn();
     }
 
