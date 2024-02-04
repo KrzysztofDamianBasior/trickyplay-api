@@ -2,7 +2,6 @@ package org.trickyplay.trickyplayapi.replies.controllers;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 
@@ -34,7 +33,7 @@ public class RepliesController {
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) @Min(0) int pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) @Min(1) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "id", required = false) @Pattern(regexp = "^(id|createdAt|updatedAt)$", message = "invalid sort argument") String sortBy,
-            @RequestParam(value = "order", defaultValue = "Asc", required = false) @Pattern(regexp = "^(Asc|Dsc)$", message = "invalid order direction") String orderDirection // Asc -sort descending, Dsc -sort ascending,
+            @RequestParam(value = "orderDirection", defaultValue = "Asc", required = false) @Pattern(regexp = "^(Asc|Dsc)$", message = "invalid order direction") String orderDirection // Asc -sort descending, Dsc -sort ascending,
     ) {
 //        int pageNo = pageNumber >= 0 ? pageNumber : 0;
 //        Set<String> orderValues = Set.of("Asc", "Dsc");
@@ -75,7 +74,6 @@ public class RepliesController {
         TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
-
 
         return repliesService.editReply(id, principal, editReplyRequest);
     }
