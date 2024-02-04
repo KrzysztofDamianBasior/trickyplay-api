@@ -18,7 +18,6 @@ import org.trickyplay.trickyplayapi.comments.records.CommentsPageArgs;
 import org.trickyplay.trickyplayapi.comments.services.CommentsService;
 import org.trickyplay.trickyplayapi.users.models.TPUserPrincipal;
 
-
 import java.net.URI;
 
 @Validated // validate parameters that are passed into a method
@@ -39,7 +38,7 @@ public class CommentsController {
     @GetMapping("/feed")
     @PreAuthorize("permitAll()")
     public GetCommentsResponse getCommentsByGameName(
-            @RequestParam(value = "gameName", required = true) String gameName,
+            @RequestParam(value = "gameName", required = true) @Pattern(regexp = "^(Snake|TicTacToe|Minesweeper)$", message = "invalid sort argument") String gameName,
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) @Min(0) int pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) @Min(1) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "id", required = false) @Pattern(regexp = "^(id|createdAt|updatedAt)$", message = "invalid sort argument") String sortBy,
@@ -77,7 +76,6 @@ public class CommentsController {
         URI commentURI = URI.create("/comments/" + commentRepresentation.getId());
         return ResponseEntity.created(commentURI).body(commentRepresentation);
     }
-
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('user:update') or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
