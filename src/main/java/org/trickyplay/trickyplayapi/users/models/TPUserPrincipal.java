@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.trickyplay.trickyplayapi.users.entities.TPUser;
 import org.trickyplay.trickyplayapi.users.enums.Role;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
+import java.util.List;
 
 @Data
 public class TPUserPrincipal implements UserDetails {
@@ -51,9 +51,14 @@ public class TPUserPrincipal implements UserDetails {
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public List<SimpleGrantedAuthority> getAuthorities() {
         return this.role.getAuthorities();
     }
+//
+//    @Override
+//    public Collection<? extends GrantedAuthority> getAuthorities() {
+//        return this.role.getAuthorities();
+//    }
 
     @Override
     public String getPassword() {
