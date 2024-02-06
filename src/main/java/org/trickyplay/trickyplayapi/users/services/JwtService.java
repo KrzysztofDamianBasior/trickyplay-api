@@ -20,10 +20,14 @@ import java.util.function.Function;
 @Service
 @Slf4j
 public class JwtService {
-    @Value("${application.security.jwt.secret-key}")
     private String secretKey;
-    @Value("${application.security.jwt.access-token-expiration}")
     private long jwtExpiration;
+
+    public JwtService(@Value("${application.security.jwt.secret-key}") String secretKey,
+                      @Value("${application.security.jwt.access-token-expiration}") long jwtExpiration){
+        this.secretKey = secretKey;
+        this.jwtExpiration = jwtExpiration;
+    }
 
     private Key getSignInKey() {
         // ref: https://www.wikiwand.com/en/Base64
