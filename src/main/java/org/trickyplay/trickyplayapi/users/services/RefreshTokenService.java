@@ -5,9 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
 import org.trickyplay.trickyplayapi.users.entities.RefreshToken;
 import org.trickyplay.trickyplayapi.users.entities.TPUser;
 import org.trickyplay.trickyplayapi.users.repositories.RefreshTokenRepository;
