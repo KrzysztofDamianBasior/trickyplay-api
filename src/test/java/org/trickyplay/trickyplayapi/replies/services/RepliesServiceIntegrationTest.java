@@ -474,7 +474,7 @@ class RepliesServiceIntegrationTest extends BaseIntegrationTest {
                                 .createdAt(LocalDateTime.now(ZoneOffset.UTC).minusHours(5).toString())
                                 .updatedAt(LocalDateTime.now(ZoneOffset.UTC).minusHours(5).toString())
                                 .build(),
-                        commentStub.getId()
+                        replyStub.getId()
                 )
         );
     }

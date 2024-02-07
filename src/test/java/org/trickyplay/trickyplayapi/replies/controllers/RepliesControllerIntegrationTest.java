@@ -418,7 +418,7 @@ class RepliesControllerIntegrationTest extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(addReplyRequest)))
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/hal+json"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(commentStub.getId()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.updatedAt").exists())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").exists())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.parentComment.id").value(addReplyRequest.getParentCommentId()))

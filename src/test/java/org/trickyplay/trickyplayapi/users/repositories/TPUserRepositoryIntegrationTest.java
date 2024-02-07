@@ -95,7 +95,6 @@ class TPUserRepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(usersPage.getContent())
                 .contains(firstUser)
                 .contains(secondUser)
-                .contains(thirdUser)
                 .hasSize(2)
                 .doesNotHaveDuplicates()
                 .hasSameElementsAs(List.of(firstUser, secondUser));
@@ -105,7 +104,7 @@ class TPUserRepositoryIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    void given_3UsersSavedInDB_when_findAllByIdInIsCalled_then_returnCorrespondingTPUsersPage() {
+    void given_3UsersSavedInDB_when_findAllByIdInIsCalled_then_returnCorrespondingTPUsersList() {
         TPUser firstUser = TPUser.builder()
                 .name("firstUser")
                 .password("123TestUserPassword")
@@ -136,15 +135,15 @@ class TPUserRepositoryIntegrationTest extends BaseIntegrationTest {
         Long secondUserId = entityManager.persist(secondUser).getId();
         Long thirdUserId = entityManager.persist(thirdUser).getId();
 
-        List<TPUser> usersList = userRepository.findAllByIdIn(List.of(1L,2L));
+        List<TPUser> usersList = userRepository.findAllByIdIn(List.of(firstUserId, secondUserId, thirdUserId));
 
         assertThat(usersList)
                 .contains(firstUser)
                 .contains(secondUser)
                 .contains(thirdUser)
-                .hasSize(2)
+                .hasSize(3)
                 .doesNotHaveDuplicates()
-                .hasSameElementsAs(List.of(firstUser, secondUser));
+                .hasSameElementsAs(List.of(firstUser, secondUser, thirdUser));
     }
 
     @Test

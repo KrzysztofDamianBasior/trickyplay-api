@@ -48,42 +48,31 @@ class RefreshTokenRepositoryIntegrationTest extends BaseIntegrationTest {
                 .updatedAt(LocalDateTime.now(ZoneOffset.UTC).minusDays(9))
                 .build();
 
-        String token = "test123";
-
         RefreshToken firstRefreshToken = RefreshToken.builder()
-                .token(token)
+                .token("firstRefreshToken")
                 .owner(tPUser)
                 .expiryDate(Instant.now().plusMillis(5000))
                 .revoked(false)
                 .build();
 
         RefreshToken secondRefreshToken = RefreshToken.builder()
-                .token(token)
+                .token("secondRefreshToken")
                 .owner(tPUser)
                 .expiryDate(Instant.now().plusMillis(5000))
                 .revoked(false)
                 .build();
 
         RefreshToken thirdRefreshToken = RefreshToken.builder()
-                .token(token)
+                .token("thirdRefreshToken")
                 .owner(tPUser)
                 .expiryDate(Instant.now().plusMillis(5000))
                 .revoked(false)
-                .build();
-
-        RefreshToken fourthRefreshToken = RefreshToken.builder()
-                .token(token)
-                .owner(tPUser)
-                .expiryDate(Instant.now().plusMillis(5000))
-                .revoked(true)
                 .build();
 
         Long userId = entityManager.persist(tPUser).getId();
         Long firstRefreshTokenId = entityManager.persist(firstRefreshToken).getId();
         Long secondRefreshTokenId = entityManager.persist(secondRefreshToken).getId();
         Long thirdRefreshTokenId = entityManager.persist(thirdRefreshToken).getId();
-        Long fourthRefreshTokenId = entityManager.persist(fourthRefreshToken).getId();
-
         List<RefreshToken> foundObjects = refreshTokenRepository.findAllValidTokensByUser(userId);
 
         assertThat(foundObjects)

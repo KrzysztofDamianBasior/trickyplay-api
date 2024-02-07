@@ -253,8 +253,8 @@ class CommentsControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.body").value(commentStub.getBody()))
                 .andDo(requestResult -> {
                     String json = requestResult.getResponse().getContentAsString();
-                    LocalDateTime createdAt = LocalDateTime.parse(JsonPath.parse(json).read("$.updatedAt").toString(), DateTimeFormatter.ISO_DATE_TIME);
-                    LocalDateTime updatedAt = LocalDateTime.parse(JsonPath.parse(json).read("$.createdAt").toString(), DateTimeFormatter.ISO_DATE_TIME);
+                    LocalDateTime createdAt = LocalDateTime.parse(JsonPath.parse(json).read("$.createdAt").toString(), DateTimeFormatter.ISO_DATE_TIME);
+                    LocalDateTime updatedAt = LocalDateTime.parse(JsonPath.parse(json).read("$.updatedAt").toString(), DateTimeFormatter.ISO_DATE_TIME);
                     assertThat(createdAt).isEqualTo(savedCommentStub.getCreatedAt());
                     assertThat(updatedAt).isEqualTo(savedCommentStub.getUpdatedAt());
                 })
