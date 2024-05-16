@@ -1,0 +1,251 @@
+# The following paragraph in short: Hyphen for the beauty, underscores for the compatibility with filesystems and programs.
+# Although I prefer to use hyphens (-) to separate words that make up the filename, hyphens and space characters in filenames are not recommended in unix, therefore I use underscores (_) everywhere except container names (container_name) (words in url addresses should be separated by hyphens (-)) to separate words. Search engines interpret hyphens in file and directory names as spaces between words (underscores are generally not recognized), on the other hand docker can convert hyphens to underscores and it seems that underscores are better tolerated in filenames in some systems.
+services:
+  prometheus:
+    image: docker.io/prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./docker_data/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./docker_data/alerting_rules.yml:/etc/prometheus/alerting_rules.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      # The problem is in nginx configuration. Because there is:
+      # location /prometheus {
+      #  proxy_pass http://prometheus:9090;
+      # ...
+      # }
+      # When you access http://yourhost/prometheus/, that request gets proxied to http://prometheus:9090/prometheus/, and by default prometheus doesn't know what to do with that /prometheus path. You need to tell it that it's being served from a non-root path using the --web.external-url command line option.
+#      - "--web.external-url=http://localhost:9090/prometheus/"
+      - "--web.external-url=/prometheus/" # The URL under which Prometheus is externally reachable (for example, if Prometheus is served via a reverse proxy). Used for generating relative and absolute links back to Prometheus itself. If the URL has a path portion, it will be used to prefix all HTTP endpoints served by Prometheus. If omitted, relevant URL components will be derived automatically.
+      - "--web.route-prefix=/" # Prefix for the internal routes of web endpoints. Defaults to path of --web.external-url.
+#      - '--web.route-prefix=/prometheus/'
+#If you use the Prometheus /-/reload HTTP endpoint to automatically reload your Prometheus config when it changes, these endpoints are disabled by default for security reasons in Prometheus 2.0. To enable them, set the --web.enable-lifecycle flag.
+#      - "--web.enable-lifecycle"
+#    ports:
+#      - 9090:9090
+#    EXPOSE typically doesn't have any operational impact anymore, it is just informative. Generally, it is good and widely used practice to define EXPOSE because very rarely anyone run them on other port than default 80 port. It's informative ("this image will offer services on these ports"), but it doesn't have any operational impact.
+    expose:
+      - 9090
+    networks:
+      - reverse_proxy_network
+      - prom_network
+    depends_on:
+      - trickyplay_api
+    secrets:
+      - prom_bearer
+#  alertmanager:
+#    image: prom/alertmanager
+#    container_name: alertmanager
+#    restart: unless-stopped
+#    volumes:
+#      - ./docker_data/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+#    command:
+#      - '--config.file=/etc/alertmanager/alertmanager.yml'
+#    ports:
+#      - 9093:9093
+#    depends_on:
+#      - prometheus
+#    networks:
+#      - prom_network
+  grafana:
+    image: docker.io/grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+#    ports:
+#      - 7000:3000
+    expose:
+      - 3000
+    depends_on:
+      - prometheus
+    # user: root
+#    healthcheck:
+#      test: curl --user admin:admin -sS http://localhost:3000/ | grep "grafana" || exit 1
+#      interval: 10s
+#      timeout: 2s
+#      retries: 3
+#      start_period: 60s
+    networks:
+      - reverse_proxy_network
+    volumes:
+      - ./docker_data/grafana/lib:/var/lib/grafana
+      - ./docker_data/grafana_config.ini:/etc/grafana/grafana.ini
+      - ./docker_data/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./docker_data/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+#      - grafana_data:/var/lib/grafana
+#    environment:
+#      - GF_AUTH_DISABLE_LOGIN_FORM=false
+#      - GF_SECURITY_ADMIN_PASSWORD=admin
+#      - GF_USERS_ALLOW_SIGN_UP=true
+#      - GF_SECURITY_ADMIN_USER=user
+#      - GF_SECURITY_ADMIN_PASSWORD=1234
+#  - GF_SERVER_DOMAIN=foo.bar.com
+#  - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:/grafana
+#      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:%(http_port)s/grafana/"
+#      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:%(http_port)s/grafana/
+#      - GF_SERVER_ROOT_URL=http://${EXTERNAL_DOMAIN}:${EXTERNAL_PORT}/grafana
+#      - GF_SERVER_SERVE_FROM_SUB_PATH="true"
+#      - GF_USERS_ALLOW_SIGN_UP=false
+#      - GF_USERS_ALLOW_ORG_CREATE=false
+#      - GF_SERVER_ROOT_URL=http://localhost:80/grafana/
+#      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+#
+#       Disable Login form or not
+#       ENV GF_AUTH_DISABLE_LOGIN_FORM "true"
+#
+#       Allow anonymous authentication or not
+#       ENV GF_AUTH_ANONYMOUS_ENABLED "true"
+#
+#       Role of anonymous user
+#       ENV GF_AUTH_ANONYMOUS_ORG_ROLE "Admin"
+#
+#       Install plugins here our in your own config file
+#       ENV GF_INSTALL_PLUGINS="<list of plugins seperated by ,"
+#
+#      - GF_SECURITY_ADMIN_PASSWORD=admin
+#      - GF_USERS_ALLOW_SIGN_UP=false
+#      - GF_SERVER_DOMAIN=localhost
+#      - GF_LOG_MODE=console file
+#      - GF_LOG_FILTERS=alerting.notifier.slack:debug alertmanager:debug ngalert:debug
+#        GF_PATHS_CONFIG	/etc/grafana/grafana.ini
+#        GF_PATHS_DATA	/var/lib/grafana
+#        GF_PATHS_HOME	/usr/share/grafana
+#        GF_PATHS_LOGS	/var/log/grafana
+#        GF_PATHS_PLUGINS	/var/lib/grafana/plugins
+#        GF_PATHS_PROVISIONING	/etc/grafana/provisioning
+#        GF_INSTALL_PLUGINS=http://plugin-domain.com/my-custom-plugin.zip;custom-plugin,grafana-clock-panel
+#
+#  The default settings for a Grafana instance are stored in the /usr/local/etc/grafana/grafana.ini file or /etc/grafana/grafana.ini. Do not change this file. This path is specified in the Grafana init.d script using --config file parameter.
+  db:
+    image: mysql:8
+    container_name: mysql
+    expose:
+      - 3306
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password # mandatory, password that will be set for the root superuser account
+      MYSQL_DATABASE: trickyplay # optional, allows to specify the name of a db to be created on image startup, if a user/password was supplied then that user will be granted superuser access (corresponding to GRANT ALL) to this db
+      MYSQL_USER: trickyplay_user # optional, used in conjunction with MYSQL_PASSWORD to create a new user and to set that user's password. This user will be granted superuser permissions for the database specified by the MYSQL_DATABASE variable.
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_root_password
+      - db_password
+    volumes:
+      - /docker_data/mysql:/var/lib/mysql
+    networks:
+      - db_network
+#    healthcheck:
+#      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+#      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+#      test: "/usr/bin/mysql --user=root --password=rootpasswd --execute \"SHOW DATABASES;\""
+#      timeout: 20s
+#      retries: 10
+  trickyplay_api:
+    container_name: trickyplay-api
+#    ports:
+#      - "9000:9000"
+##      - ${SERVER_PORT}:${SERVER_PORT}
+    expose:
+      - 9090
+    env_file: docker_data/.env
+    depends_on:
+      - db
+# condition was removed compose spec in versions 3.0 to 3.8 but is now back, Using version of the compose spec v3.9+ (docker-compose v1.29), you can use condition as an option in long syntax form of depends_on. It is sadly pretty badly documented so better option can be just use restart: on-failure as solution to communication links failures
+#    depends_on:
+#      db:
+#        condition: service_healthy
+#
+#    image: ${REGISTRY:-docker.io}/krzysztofbasior/trickyplay-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_TAG: local
+        VERSION: local
+#    environment:
+#      ACTIVE_PROFILE: dev
+#      SSL_KEYSTORE_PATH: /app/config/keystore.jks
+#      SSL_KEYSTORE_PASSWORD: trickyplay-password
+#      SSL_KEY_PASSWORD: trickyplay-password
+    secrets:
+      - source: keystore
+        target: /app/config/keystore.jks
+    networks:
+      - reverse_proxy_network
+      - db_network
+    restart: on-failure
+# when you define a healthcheck in your docker-compose.yml, it will override the HEALTHCHECK instruction specified in the Dockerfile. This allows you to add or modify health checks for images without altering the image itself, which is particularly useful if you’re pulling an image from a remote registry and want to customize the health check for your specific environment
+#    healthcheck:
+#      # Docker can either run the command using CMD which is the equivalent of the OS exec syscall directly in the kernel, or it can run using CMD-SHELL which runs a shell to call your command (typically /bin/sh.) (CMD - just allow you to pass params separately)
+#      test: ["CMD", "java", "-Durl=http://trickyplay-api/actuator/health" , "HealthCheck.java", "||", "exit", "1"]
+#      interval: 20s
+#      timeout: 5s
+#      retries: 5
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: unless-stopped
+    environment:
+      - PMA_ABSOLUTE_URI=http://localhost/phpmyadmin
+      - PMA_PORT=3306 # define port of the MySQL server
+      - PMA_HOST=mysql # define address/host of the MySQL server
+      - PMA_USER=root # define username to use only with the config authentication method
+      - PMA_PASSWORD_FILE=/run/secrets/db_password # define password to use only with the config authentication method
+#      - PMA_ARBITRARY=1 # This will run phpMyAdmin with the arbitrary server option - allowing you to specify any MySQL/MariaDB server on the login page.
+#    ports:
+#        - 8081:80
+    expose:
+      - 80
+    networks:
+      - reverse_proxy_network
+      - db_network
+    secrets:
+      - db_password
+    depends_on:
+      - db
+  nginx:
+    container_name: reverse-proxy
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker_data/trickyplay_api.conf:/etc/nginx/conf.d/default.conf
+#      - ./docker_data/proxy.conf:/etc/nginx/proxy.conf
+#      - proxy_cache:/etc/nginx/cache
+#      - ./docker_data/trickyplay_api.conf.template:/etc/nginx/template/default.conf.template
+#      - ./docker_data/certs/:/etc/nginx/certs/
+#      - ./docker_data/gw-web/:/usr/share/nginx/html:ro
+#      - ./docker_data/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - reverse_proxy_network
+    secrets:
+      - nginx_auth_file
+    depends_on:
+      - phpmyadmin
+      - trickyplay_api
+      - grafana
+      - prometheus
+    restart: on-failure
+networks:
+  reverse_proxy_network:
+  db_network:
+  prom_network:
+volumes:
+  proxy_cache:
+  prometheus_data:
+secrets:
+  db_password:
+    file: secrets/db_password.txt
+  db_root_password:
+    file: secrets/db_root_password.txt
+  keystore:
+    file: ./secrets/keystore.jks
+  prom_bearer:
+    file: secrets/prom_bearer.txt
+  nginx_auth_file:
+    file: secrets/nginx_auth_file.htpasswd
