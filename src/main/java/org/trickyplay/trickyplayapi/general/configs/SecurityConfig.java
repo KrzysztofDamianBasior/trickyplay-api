@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,6 +20,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import org.trickyplay.trickyplayapi.general.filters.JwtAuthenticationFilter;
 import org.trickyplay.trickyplayapi.general.handlers.UnauthorizedHandler;
@@ -26,6 +30,8 @@ import org.trickyplay.trickyplayapi.users.enums.Permission;
 import org.trickyplay.trickyplayapi.users.enums.Role;
 import org.trickyplay.trickyplayapi.users.repositories.TPUserRepository;
 import org.trickyplay.trickyplayapi.users.services.TPUserDetailsService;
+
+import java.util.Arrays;
 
 // @EnableWebSecurity is a marker annotation. It allows Spring to find and automatically apply the class to the global WebSecurity. It's to switch off the default web application security configuration and add your own. EnableWebSecurity will provide configuration via HttpSecurity. It allows to configure access based on urls patterns, the authentication endpoints, handlers etc.
 //
@@ -68,6 +74,18 @@ public class SecurityConfig {
         return authenticationProvider;
     }
 
+//    @Bean
+//    public WebMvcConfigurer corsConfigurer()
+//    {
+//        return new WebMvcConfigurer() {
+//            @Override
+//            public void addCorsMappings(CorsRegistry registry) {
+//                // .allowedMethods("HEAD", "GET", "PUT", "POST", "DELETE", "PATCH");
+//                registry.addMapping("/**").allowedOrigins("*").allowedMethods("*").allowedHeaders("*");
+//            }
+//        };
+//    }
+
 //    // The object mapper becomes a bean once you add the spring web starter, let's customize it
 //    @Bean
 //    public Jackson2ObjectMapperBuilder objectMapperBuilder() {
@@ -84,6 +102,24 @@ public class SecurityConfig {
 //    }
 
     @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+//        Access-Control-Allow-Origin: Defines which origins may have access to the resource. A ‘*’ represents any origin
+//        Access-Control-Allow-Methods: Indicates the allowed HTTP methods for cross-origin requests
+//        Access-Control-Allow-Headers: Indicates the allowed request headers for cross-origin requests
+//        Access-Control-Max-Age: Defines the expiration time of the result of the cached preflight request
+//        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+//        configuration.setExposedHeaders(Arrays.asList("X-Get-Header"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain configureApplicationSecurity(HttpSecurity http) throws Exception {
         // ref: https://github.com/spring-projects/spring-security/issues/11939
         // ref: https://stackoverflow.com/questions/74683225/updating-to-spring-security-6-0-replacing-removed-and-deprecated-functionality
@@ -93,7 +129,7 @@ public class SecurityConfig {
         // An overloaded method requestMatchers() was introduced as a uniform mean for securing requests. The flavors of requestMatchers() facilitate all the ways of restricting requests that were supported by the removed methods.
         // Also, method authorizeRequests() has been deprecated and shouldn't be used anymore. A recommended replacement - authorizeHttpRequests()
         //
-        // Even if you're using an earlier Spring version in your project and not going to update to Spring 6 very soon, antMatchers() isn't the best tool you can choose for securing requests to your application. While applying security rules using antMatchers() you need to be very careful because if you secure let's say path "/foo" these restrictions wouldn't be applied to other aliases of this path like "/foo/", "/foo.thml". As a consequence, it's very easy to misconfigure security rules and introduce a vulnerability (for instance, a path that is supposed to be accessible only for Admins becomes available for any authenticated user, it's surprising that none of the answers above mentions this).
+        // Even if you're using an earlier Spring version in your project and not going to update to Spring 6 very soon, antMatchers() isn't the best tool you can choose for securing requests to your application. While applying security rules using antMatchers() you need to be very careful because if you secure let's say path "/foo" these restrictions wouldn't be applied to other aliases of this path like "/foo/", "/foo.thml". As a consequence, it's very easy to misconfigure security rules and introduce a vulnerability (for instance, a path that is supposed to be accessible only for Admins becomes available for any authenticated user).
         //
         // Spring security deprecated way to intercept paths:
         // http.csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -135,7 +171,7 @@ public class SecurityConfig {
         // HttpSecurity method rejects the request early, in a web request filter, before controller mapping has occurred. In contrast, the @PreAuthorize assessment happens later, directly before the execution of the controller method. This means that configuration in HttpSecurity is applied before @PreAuthorize. Moreover, HttpSecurity is tied to URL endpoints while @PreAuthorize is tied to controller methods and is actually located within the code adjacent to the controller definitions. Having all of your security in one place and defined by web endpoints has a certain neatness to it, especially in smaller projects, or for more global settings; however, as projects get larger, it may make more sense to keep the authorization policies near the code being protected, which is what the annotation-based method allows.
 
         http
-                .cors(AbstractHttpConfigurer::disable) // .csrf().disable() "disabling SOP"- SOP is the Same Origin Policy – mechanism implemented inside each browser that prevents some requests to be executed when origin of page that makes a request differs from the origin of the requested resource
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable) // our stateless API uses jwt token-based authentication, we don't need CSRF protection
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // in STATELESS mode Spring Security will never create a HttpSession, and it will never use it to get the SecurityContext.
                 .authenticationProvider(authenticationProvider())
@@ -160,6 +196,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/account").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.BANNED.name())
                         .requestMatchers(HttpMethod.PATCH, "/users/{id}/ban-account", "/users/{id}/unban-account").hasRole(Role.ADMIN.name())
                         .requestMatchers(HttpMethod.PATCH, "/users/{id}/grant-admin-permissions").hasRole(Role.ADMIN.name())
+//                        .requestMatchers("/actuator/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator").hasRole(Role.ADMIN.name())
+                        .requestMatchers("/actuator/**").hasRole(Role.ADMIN.name())
                         .anyRequest().authenticated()
                 );
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
