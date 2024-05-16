@@ -1,5 +1,7 @@
 package org.trickyplay.trickyplayapi.users.controllers;
 
+import io.micrometer.core.annotation.Timed;
+
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
@@ -95,6 +97,7 @@ public class UsersController {
     }
 
     @GetMapping("/{id}/activity-summary")
+    @Timed("generate-pdf-timer")
     public void generatePDF(@PathVariable @Min(0) long id, HttpServletResponse response) throws IOException {
         response.setContentType("application/pdf");
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss");

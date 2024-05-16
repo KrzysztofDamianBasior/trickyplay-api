@@ -11,6 +11,10 @@ java {
 	sourceCompatibility = '17'
 }
 
+jar {
+	enabled = false
+}
+
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
@@ -58,6 +62,15 @@ dependencies {
       It is unnecessary for these algorithms on JDK 15 or later.
     */
 	// runtimeOnly 'org.bouncycastle:bcprov-jdk15on:1.70'
+
+//	implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus'
+//	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+
+	// https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 tasks.named('test') {

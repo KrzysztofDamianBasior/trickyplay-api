@@ -1,13 +1,16 @@
 package org.trickyplay.trickyplayapi.users.controllers;
 
+import io.micrometer.core.annotation.Timed;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,14 +26,23 @@ import org.trickyplay.trickyplayapi.users.services.PDFGeneratorService;
 
 @Validated // validate parameters that are passed into a method
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("account")
 public class AccountController {
     private final AccountService accountService;
     private final PDFGeneratorService pdfGeneratorService;
 
+    private final Counter accountDeletedCounter;
+
+    public AccountController(MeterRegistry registry, AccountService accountService, PDFGeneratorService pdfGeneratorService) {
+        this.accountService = accountService;
+        this.pdfGeneratorService = pdfGeneratorService;
+
+        accountDeletedCounter = registry.counter("controllers.account-deleted");
+    }
+
     @GetMapping("/activity-summary")
     @PreAuthorize("isAuthenticated()")
+    @Timed("generate-pdf-timer")
     public void generatePDF(HttpServletResponse response) throws IOException {
         response.setContentType("application/pdf");
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd:hh:mm:ss");
@@ -76,6 +88,8 @@ public class AccountController {
                 .getAuthentication()
                 .getPrincipal();
         long principalId = ((TPUserPrincipal) principal).getId();
+
+        accountDeletedCounter.increment();
 
         return accountService.deleteAccount(principalId);
     }

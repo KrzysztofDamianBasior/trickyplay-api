@@ -1,10 +1,11 @@
 package org.trickyplay.trickyplayapi.comments.controllers;
 
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
-
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +24,15 @@ import java.net.URI;
 @Validated // validate parameters that are passed into a method
 @RestController
 @RequestMapping("comments")
-@RequiredArgsConstructor
 public class CommentsController {
     private final CommentsService commentsService;
+
+    private final DistributionSummary addedCommentLengthSummary;
+
+    public CommentsController(MeterRegistry registry, CommentsService commentsService) {
+        this.commentsService = commentsService;
+        addedCommentLengthSummary = registry.summary("added-comment-length");
+    }
 
     /**
      * @param gameName       name of the game from which comments are fetched
@@ -71,9 +78,11 @@ public class CommentsController {
         TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
-
         CommentRepresentation commentRepresentation = commentsService.addComment(principal, addCommentRequest);
         URI commentURI = URI.create("/comments/" + commentRepresentation.getId());
+
+        addedCommentLengthSummary.record(addCommentRequest.getBody().length());
+
         return ResponseEntity.created(commentURI).body(commentRepresentation);
     }
 
@@ -87,7 +96,6 @@ public class CommentsController {
         TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
-
         return commentsService.editComment(principal, id, editCommentRequest);
     }
 
@@ -105,7 +113,6 @@ public class CommentsController {
         TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
-
         return commentsService.deleteComment(principal, id);
     }
 

@@ -1,9 +1,11 @@
 package org.trickyplay.trickyplayapi.replies.controllers;
 
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +24,15 @@ import java.net.URI;
 @Validated
 @RestController
 @RequestMapping("replies")
-@RequiredArgsConstructor
 public class RepliesController {
     private final RepliesService repliesService;
+
+    private final DistributionSummary addedReplyLengthSummary;
+
+    public RepliesController(MeterRegistry registry, RepliesService repliesService) {
+        this.repliesService = repliesService;
+        this.addedReplyLengthSummary = registry.summary("added-reply-length");
+    }
 
     @GetMapping("/feed")
     @PreAuthorize("permitAll()")
@@ -40,7 +48,6 @@ public class RepliesController {
 //        Sort.Direction sortDirection = orderValues.contains(orderDirection) ? Sort.Direction.fromString(orderDirection) : Sort.Direction.ASC;
         Sort.Direction sortDirection = Sort.Direction.fromString(orderDirection);
         RepliesPageArgs repliesPageArgs = new RepliesPageArgs(pageNumber, pageSize, sortBy, sortDirection);
-
         return repliesService.getRepliesByParentCommentId(parentCommentId, repliesPageArgs);
     }
 
@@ -58,9 +65,11 @@ public class RepliesController {
         TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
-
         ReplyRepresentation replyDTO = repliesService.addReply(principal, addReplyRequest);
         URI replyURI = URI.create("/replies/" + replyDTO.getId());
+
+        addedReplyLengthSummary.record(addReplyRequest.getBody().length());
+
         return ResponseEntity.created(replyURI).body(replyDTO);
     }
 
@@ -74,7 +83,6 @@ public class RepliesController {
         TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
-
         return repliesService.editReply(id, principal, editReplyRequest);
     }
 
@@ -93,7 +101,6 @@ public class RepliesController {
         TPUserPrincipal principal = (TPUserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
-
         return repliesService.deleteReply(principal, id);
     }
 
