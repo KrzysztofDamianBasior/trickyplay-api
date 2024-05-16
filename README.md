@@ -24,6 +24,8 @@ Let me explain why each dependency is used:
 * spring-boot-starter-test: starter module that provides a quick and easy way to write tests for your Spring Boot application. It includes all the necessary dependencies for building unit and integration tests, such as JUnit, Spring Test, and AssertJ. By using spring-boot-starter-test, you can quickly create unit tests that can run in isolation as well as integration tests that will bootstrap Spring context before executing tests.
 * spring-security-test: module that provides support for testing Spring Security applications. You can use @WithMockUser annotation to test your application with a mock user. You can also use @WithAnonymousUser annotation to test your application with an anonymous user.
 * spring-boot-devtools: module that provides a set of tools to enhance the development experience. Spring-boot-devtools provides features such as automatic restarts and live reloads. Whenever files change in the classpath, applications using spring-boot-devtools will cause the application to restart. The benefit of this feature is the time required to verify the changes made is considerably reduced.
+* spring-boot-starter-actuator: Spring Boot Actuator is a powerful sub-project of the Spring Boot Framework that provides production-ready features for monitoring and managing your application in a convenient way. Actuator brings operational information about your running application to the forefront. It offers features like health checks, metrics gathering, and more. The main benefit is that you get these production-grade tools without having to implement them yourself. Actuator exposes this information through HTTP endpoints or JMX beans. Actuator provides several built-in endpoints that allow you to monitor and interact with your application. Some useful endpoints include: health (provides basic application health information- whether the application is up or down), metrics (exposes various metrics about your application- memory usage, request counts, etc.), info (displays arbitrary application information), environment (exposes properties from Spring’s ConfigurableEnvironment), auditevents (shows audit events information for the current application), loggers (allows you to manage logging levels dynamically)
+* micrometer-registry-prometheus: Micrometer is a powerful library for collecting application metrics in Java-based applications. It provides a consistent way to instrument your code and expose metrics for monitoring and observability.
 * mysql-connector-java: JDBC driver for MySQL that allows Java programs to connect to a MySQL database. It is the official JDBC driver for MySQL and is developed by Oracle. The driver provides support for all the standard JDBC features, including transactions, prepared statements, and stored procedures.
 * jjwt: is a Java library that provides JSON Web Token creation and verification. JJWT is a pure Java implementation based exclusively on the JOSE Working Group RFC specifications. It supports all the standard JWT features, including signing, encryption, and claims.
 * liquibase-core: module that provides the core functionality for managing database changes. By using liquibase-core, you can quickly create a changelog file that describes changes to your database schema over time. The module provides support for all the standard Liquibase features, including rollback, diff, and updateSql.
@@ -32,9 +34,13 @@ Let me explain why each dependency is used:
 * openpdf: OpenPDF is a free and open-source Java library that can be used to create, edit, and read PDF files. It provides a simple API for generating PDF documents from scratch or modifying existing ones. OpenPDF can be helpful for creating reports with Java Spring Boot as it allows you to generate PDF reports dynamically and efficiently. You can use OpenPDF to read data from a database or other sources, format it, and then generate a PDF report that can be downloaded or sent to a printer. To get started with OpenPDF in Java Spring Boot, you can add the OpenPDF dependency to your project’s pom.xml file. Once you have added the dependency, you can use the OpenPDF API to create a new PDF document, add content to it, and then save it to a file or stream.
 
 ### Getting Started
+Two ways to run the project are described below. The first one consisting in building the application yourself in the InteliJ IDEA environment, the second one using the docker compose manifest.
+
+###### The first way - building an application in the inteliJ IDEA environment
+
 To get started with this project, you will need to have the following installed on your local machine:
 * JDK 17+
-* Docker desktop (it may be useful to cache the database image beforehand using- docker pull mysql:8.1, to avoid issues with the download)
+* Docker desktop (it may be useful to cache the database image beforehand using- docker-data pull mysql:8.1, to avoid issues with the download)
 
 To build and run the project, follow these steps:
 * Clone the repository: `git clone https://github.com/ali-bouali/spring-boot-3-jwt-security.git`
@@ -62,9 +68,24 @@ To build and run the project, follow these steps:
   * PROD_MYSQL_PORT={database port for the production profile}
   * DEFAULT_MYSQL_USERNAME={database username for the default profile}
   * PROD_MYSQL_USERNAME={database username for the production profile}
-  * LOG_FILE={relative path to log file like logs/app-logback.log}
+  * LOG_FILE={relative path to log file like logs/app-logback.log} 
+  * SSL_KEYSTORE_PATH={path to .jks file}
+  * SSL_KEYSTORE_PASSWORD={ssl keystore password} 
+  * SSL_KEY_PASSWORD={ssl key password}
 * To build and run the application use: `./gradlew bootRun`
 * The application will be available at http://localhost:${DEFAULT_APPLICATION_PORT}.
+
+###### The second way - using the docker environment and the compose manifest
+
+* Define the environment variables described above of the trickyplay-api application, save them in a file that you include in the compose manifest or specify them in the environment variables section of the compose manifest
+* Define the following secrets:
+  * db-password -password of a user with full permissions to the application database
+  * db-root -application database root user password
+  * keystore -keystore.jks file used by spring to maintain a secure SSL connection
+  * nginx-auth-file -data about users who have access to the functionality secured by nginx, use htpasswd utility to create it
+  * prom-bearer -token used by prometheus to access sensitive application data
+* Configure the Dockerfile and docker-compose files in the project to suit your needs
+* Execute the command `docker compose up`
 
 ### Reference Documentation
 For further reference, please consider the following sections:
@@ -78,11 +99,13 @@ For further reference, please consider the following sections:
 * [Spring HATEOAS](https://docs.spring.io/spring-boot/docs/3.1.2/reference/htmlsingle/index.html#web.spring-hateoas)
 * [Spring Security](https://docs.spring.io/spring-boot/docs/3.1.2/reference/htmlsingle/index.html#web.security)
 * [Spring Data JPA](https://docs.spring.io/spring-boot/docs/3.1.2/reference/htmlsingle/index.html#data.sql.jpa-and-spring-data)
+* [Spring Actuator](https://docs.spring.io/spring-boot/docs/current/actuator-api/htmlsingle/)
 * [Liquibase Migration](https://docs.spring.io/spring-boot/docs/3.1.2/reference/htmlsingle/index.html#howto.data-initialization.migration-tool.liquibase)
 * [Validation](https://docs.spring.io/spring-boot/docs/3.1.2/reference/htmlsingle/index.html#io.validation)
 * [Testcontainers](https://java.testcontainers.org/)
 * [JJWT](https://github.com/jwtk/jjwt)
 * [OpenPdf](https://github.com/LibrePDF/OpenPDF?tab=readme-ov-file)
+* [Micrometer](https://micrometer.io/)
 
 ### Guides
 The following guides illustrate how to use some features concretely:
