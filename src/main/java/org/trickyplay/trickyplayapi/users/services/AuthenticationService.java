@@ -10,7 +10,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -219,7 +218,7 @@ public class AuthenticationService {
         return signInResponse;
     }
 
-    public RefreshTokenResponse refreshAccessToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+    public RefreshTokenResponse refreshAccessToken(RefreshTokenRequest refreshTokenRequest) {
         // new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
         RefreshToken refreshToken = refreshTokenService
                 .findByToken(refreshTokenRequest.getRefreshToken())
