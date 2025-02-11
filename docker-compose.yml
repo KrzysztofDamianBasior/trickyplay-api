@@ -1,5 +1,5 @@
-# The following paragraph in short: Hyphen for the beauty, underscores for the compatibility with filesystems and programs.
-# Although I prefer to use hyphens (-) to separate words that make up the filename, hyphens and space characters in filenames are not recommended in unix, therefore I use underscores (_) everywhere except container names (container_name) (words in url addresses should be separated by hyphens (-)) to separate words. Search engines interpret hyphens in file and directory names as spaces between words (underscores are generally not recognized), on the other hand docker can convert hyphens to underscores and it seems that underscores are better tolerated in filenames in some systems.
+# Hyphen for the beauty, underscores for the compatibility with filesystems and programs.
+# Although I prefer to use hyphens (-) to separate words that make up the filename, hyphens and space characters in filenames are not recommended in unix, therefore I sometimes use underscores (_). Docker sometimes convert hyphens to underscores and it also seems that underscores are better tolerated in filenames in some system. This is the reason why I use, for example, the folder name docker_data instead of docker-data.
 services:
   prometheus:
     image: docker.io/prom/prometheus:latest
@@ -24,6 +24,9 @@ services:
       - "--web.external-url=/prometheus/" # The URL under which Prometheus is externally reachable (for example, if Prometheus is served via a reverse proxy). Used for generating relative and absolute links back to Prometheus itself. If the URL has a path portion, it will be used to prefix all HTTP endpoints served by Prometheus. If omitted, relevant URL components will be derived automatically.
       - "--web.route-prefix=/" # Prefix for the internal routes of web endpoints. Defaults to path of --web.external-url.
 #      - '--web.route-prefix=/prometheus/'
+# External Prefix and Route Prefix -https://thanos.io/tip/operating/reverse-proxy.md/
+# let’s first take a look at two CLI flags, --web.external-prefix and --web.route-prefix. The external prefix is useful when you want to prefix all requests from the UI with some path. Normally, the web UI would load all static assets from /static/..., do API calls on /api/v1/... etc. But if we use --web.external-prefix="thanos" the UI would prefix each request with /thanos. It would try to load all assets from /thanos/static/..., do API calls on /thanos/api/v1/... and so on. One thing to note here is that --web.external-prefix only prefixes the requests and redirects with the specified value, but Thanos is still listening on the root, not the specified sub-path i.e. the API is still accessible at /api/v1/... and not at /thanos/api/v1. This is where --web.route-prefix comes in. If you set --web.route-prefix="thanos" every route would get prefixed with the specified value. For example, the API will be accessible on /thanos/api/v1. As this is the most common use case when using the --web.external-prefix, the default value of --web.route-prefix is the value of --web.external-prefix. Using different values for --web.external-prefix and --web.route-prefix can lead to the web UI not working properly if it is accessed directly (without a reverse proxy).
+#      - '--web.listen-address="127.0.0.1:9090"'
 #If you use the Prometheus /-/reload HTTP endpoint to automatically reload your Prometheus config when it changes, these endpoints are disabled by default for security reasons in Prometheus 2.0. To enable them, set the --web.enable-lifecycle flag.
 #      - "--web.enable-lifecycle"
 #    ports:
@@ -46,6 +49,9 @@ services:
 #      - ./docker_data/alertmanager.yml:/etc/alertmanager/alertmanager.yml
 #    command:
 #      - '--config.file=/etc/alertmanager/alertmanager.yml'
+#      - '--web.listen-address="127.0.0.1:9093"'
+#      - '--web.external-url="https://prometheus.example.org/alertmanager/"'
+#      - '--web.route-prefix="/"'
 #    ports:
 #      - 9093:9093
 #    depends_on:
@@ -76,7 +82,6 @@ services:
       - ./docker_data/grafana_config.ini:/etc/grafana/grafana.ini
       - ./docker_data/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./docker_data/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-#      - grafana_data:/var/lib/grafana
 #    environment:
 #      - GF_AUTH_DISABLE_LOGIN_FORM=false
 #      - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -147,28 +152,27 @@ services:
   trickyplay_api:
     container_name: trickyplay-api
 #    ports:
-#      - "9000:9000"
-##      - ${SERVER_PORT}:${SERVER_PORT}
+#      - "9090:9090"
+##      - ${PROD_APPLICATION_PORT}:${PROD_APPLICATION_PORT}
     expose:
       - 9090
-    env_file: docker_data/.env
     depends_on:
       - db
-# condition was removed compose spec in versions 3.0 to 3.8 but is now back, Using version of the compose spec v3.9+ (docker-compose v1.29), you can use condition as an option in long syntax form of depends_on. It is sadly pretty badly documented so better option can be just use restart: on-failure as solution to communication links failures
+# condition was removed from compose spec in versions 3.0 to 3.8 but is now back, Using version of the compose spec v3.9+ (docker-compose v1.29), you can use condition as an option in long syntax form of depends_on. It is sadly pretty badly documented so better option can be just use restart: on-failure as solution to communication links failures
 #    depends_on:
 #      db:
 #        condition: service_healthy
-#
-#    image: ${REGISTRY:-docker.io}/krzysztofbasior/trickyplay-api
+#    image: ${REGISTRY:-docker.io}/krzysztofdamianbasior/trickyplay-api:1.0
     build:
       context: .
       dockerfile: Dockerfile
       args:
         BUILD_TAG: local
         VERSION: local
-#    environment:
-#      ACTIVE_PROFILE: dev
-#      SSL_KEYSTORE_PATH: /app/config/keystore.jks
+    env_file: docker_data/.env
+    environment:
+      ACTIVE_PROFILE: dev
+      SSL_KEYSTORE_PATH: /app/config/keystore.jks
 #      SSL_KEYSTORE_PASSWORD: trickyplay-password
 #      SSL_KEY_PASSWORD: trickyplay-password
     secrets:
@@ -178,13 +182,22 @@ services:
       - reverse_proxy_network
       - db_network
     restart: on-failure
+  #To set a hard memory limit, use the --memory option (--memory=256m) with the container run child command. Docker doesn’t allow a container to use more than a given amount of user or system memory after setting this limit. In addition to this, Docker allows us to set soft memory limits (--memory=1g --memory-reservation=512m). This option allows a container to use as much memory as it requires unless the kernel detects memory contention. To set soft memory limits, use the –memory-reservation option with the container run child command: We should note that the soft memory limits must be less than the hard ones. Because it is a soft limit and there isn’t a guarantee that the container will not exceed it. By default, containers can use the unlimited cycles of the host machine’s CPU. To restrict it, use the –cpus option with the container run child command (--cpus=1). You can also set this configuration in compos:
+  #    mem_limit – represents the hard memory limits. We have set it to 1GiB
+  #    mem_reservation: represents the soft memory limits. We have set it to 512MiB
+  #    cpus – represents the CPU limit.
+  #    cpuset – represents the limit on a specific CPU.
+#    mem_limit: "700m"
+#    mem_reservation: "600m"
 # when you define a healthcheck in your docker-compose.yml, it will override the HEALTHCHECK instruction specified in the Dockerfile. This allows you to add or modify health checks for images without altering the image itself, which is particularly useful if you’re pulling an image from a remote registry and want to customize the health check for your specific environment
 #    healthcheck:
-#      # Docker can either run the command using CMD which is the equivalent of the OS exec syscall directly in the kernel, or it can run using CMD-SHELL which runs a shell to call your command (typically /bin/sh.) (CMD - just allow you to pass params separately)
-#      test: ["CMD", "java", "-Durl=http://trickyplay-api/actuator/health" , "HealthCheck.java", "||", "exit", "1"]
-#      interval: 20s
-#      timeout: 5s
-#      retries: 5
+#      Docker can either run the command using CMD which is the equivalent of the OS exec syscall directly in the kernel, or it can run using CMD-SHELL which runs a shell to call your command (typically /bin/sh.) (CMD - just allow you to pass params separately)
+#      localhost and 127.0.0.1 - These resolve to the container.
+#      host.docker.internal - This resolves to the outside host.
+#      test: ["CMD", "java", "-Durl=https://localhost:9090/actuator/health" , "HealthCheck.java", "||", "exit", "1"]
+#      interval: 5s
+#      timeout: 2s
+#      retries: 2
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin

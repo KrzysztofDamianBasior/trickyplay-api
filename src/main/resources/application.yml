@@ -3,6 +3,7 @@ spring:
     change-log: classpath:db/liquibase-changeLog.xml
 #    enabled: false
   datasource:
+    # A JDBC URL is a database connection URL that identifies a database so that the appropriate driver recognizes it and connects to it. The format of other string elements depends on the JDBC driver. In most cases, the format of the database connection URL resembles the following example: jdbc:<database>://<host>:<port>/<database_name>;<URL_attributes>
     url: jdbc:mysql://${DEFAULT_MYSQL_HOST}:${DEFAULT_MYSQL_PORT}/${DEFAULT_MYSQL_DATABASE}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false
     username: ${DEFAULT_MYSQL_USERNAME}
     password: ${DEFAULT_MYSQL_PASSWORD}
@@ -27,6 +28,16 @@ server:
     # Despite NEVER being the default for server.error.include-stacktrace, if you include Spring Boot DevTools it overides to ALWAYS. If you update application.yml (or application.properties) to specify NEVER Spring Boot DevTools will respect it
     include-stacktrace: never
   ssl:
+#    to generate a certificate using JKS format:
+#    keytool -genkey -alias selfrest -keyalg RSA -keypass pass123 -storetype JKS -keystore selfsigned.jks -storepass pass123 -validity 360 -keysize 2048
+#    to check the content of the keystore, we can use keytool again:
+#    keytool -list -v -keystore selfsigned.jks
+#    to export Self signed certificate into .cer file:
+#    keytool -exportcert -alias selfrest -keystore selfsigned.jks -file selfsigned.cer
+#    Install self-signed certificate into Java JDK CA Certificate key store path to avoid giving certificate path in the client program.
+#    keytool -import -alias selfrest -keystore "C:\Program Files\Java\jdk1.8.0_181\jre\lib\security\cacerts" -file selfsigned.cer
+#    List certificates stored in JDK Key store which you have just now imported into JDK Security path.
+#    keytool -list -keystore "%JAVA_HOME%\jre\lib\security\cacerts
     key-password: ${SSL_KEY_PASSWORD}
     key-store-password: ${SSL_KEYSTORE_PASSWORD}
     key-store: ${SSL_KEYSTORE_PATH}

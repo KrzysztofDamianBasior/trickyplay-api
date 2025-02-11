@@ -20,3 +20,8 @@ public class HealthCheck {
         }
     }
 }
+// https://www.baeldung.com/java-httpclient-ssl
+//Bypassing SSL Certificate Verification
+//Properties props = System.getProperties();
+//props.setProperty("jdk.internal.httpclient.disableHostnameVerification", Boolean.TRUE.toString());
+//HttpClient httpClient = HttpClient.newHttpClient();
