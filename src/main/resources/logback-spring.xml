@@ -12,15 +12,20 @@
     <!--    <include resource="org/springframework/boot/logging/logback/base.xml"/>-->
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <property name="LOG_FILE" value="logs/app.log"/>
+    <!--    <property name="LOG_FILE" value="logs/app.log"/>-->
+    <property name="LOG_FILE_PATH" value="${LOG_FILE}"/>
+    <!--    During substitution, properties are looked up in the local scope first, in the context scope second, in the system properties scope third, and in the OS environment fourth and last". So if the property is defined in the environment, logback will find it.-->
 
     <!-- ref: https://www.codingame.com/playgrounds/4497/configuring-logback-with-spring-boot-->
     <!-- RollingFileAppender will save the logs to different files depending on their rolling policy. This is handy as it allows the log output to be split out into various forms that you have control over. For example, you could separate the log files based on date, so you can look at errors that have occurred in the past on particular dates, separate on file size, so you don't need to go searching through a massive never ending file or do both and separate by date and size-->
     <appender name="FILE-ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_FILE}</file>
+        <file>${LOG_FILE_PATH}</file>
+        <!-- <file>${MY_HOME}/${LOG_FILE}.log</file> -->
 
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>logs/archived/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- <fileNamePattern>${MY_HOME}/${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern> -->
+
             <!-- each archived file, size max 2KB -->
             <maxFileSize>2KB</maxFileSize>
             <!-- total size of all archive files, if total size > 20KB,
@@ -88,8 +93,13 @@
 
         <!-- ref: https://www.codingame.com/playgrounds/4497/configuring-logback-with-spring-boot-->
         <!-- Not using additivity="false will cause the message to be printed out twice due to the root log appender and the class level appender both writing to the log. Even if the root level is ERROR by setting the class level to DEBUG it overwrites it globally and will cause the root appender to also write to DEBUG level-->
-        <logger name="org.trickyplay" level="trace" additivity="false">
+        <logger name="org.trickyplay" level="trace" additivity="false">  <!-- level="${logging.level.com.myorg.foo}"-->
             <appender-ref ref="FILE-ROLLING"/>
+<!--            <if condition='${sendErrors:-true}'>-->
+<!--                <then>-->
+<!--                    <appender-ref ref="MyAppender"/>-->
+<!--                </then>-->
+<!--            </if>-->
         </logger>
 
         <!-- ref: https://logback.qos.ch/manual/architecture.html-->

@@ -22,6 +22,11 @@ spring:
 #        dialect: org.hibernate.dialect.MySQL8Dialect
 #  jmx:
 #    enabled: true
+logging:
+  config: classpath:logback-spring.xml
+#  logging.file.path=.             # write logs to the current directory
+#  logging.file.path=/home/logs    # write logs to /home/logs
+#  logging.file.name=myapp.log
 server:
   port: ${DEFAULT_APPLICATION_PORT}
   error:
@@ -109,8 +114,9 @@ management:
 #    shutdown:
 #      enabled: true
     health:
-#      #      roles: ["ADMIN"]
-#      show-details: always
+      #      roles: ["ADMIN"]
+      #      show-details: always
+      # The management.endpoint.health.show-details configuration property controls the level of details each helath endpont can expose. There is the when_authorized value which exposes the additional details only for authorized users. A user is authorized if and only if she's authenticated and she possesses the roles specified in the management.endpoint.health.roles configuration property.
       probes:
         enabled: true
   endpoints: # globally configures common endpoint properties and the ways in which endpoints may be accessed.

@@ -92,7 +92,7 @@ public class AuthenticationService {
 
         var accessToken = jwtService.issueToken(principal);
         var refreshToken = refreshTokenService.createAndSaveRefreshToken(principal.getId());
-        log.debug("Successfully authenticated. Security context contains: " + SecurityContextHolder.getContext().getAuthentication());
+        // log.debug("Successfully authenticated. Security context contains: " + SecurityContextHolder.getContext().getAuthentication());
         SignInResponse signInResponse = SignInResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken.token)
