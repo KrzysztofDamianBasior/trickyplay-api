@@ -30,6 +30,7 @@ class RefreshTokenServiceUnitTest {
         tPUserRepository = Mockito.mock(TPUserRepository.class);
         refreshTokenService = new RefreshTokenService(refreshTokenRepository, tPUserRepository);
         refreshTokenService.setRefreshExpiration(1L);
+        // MockitoAnnotations.initMocks(this); // to enable Mockito annotations during test executions this static method has to be called, another way to enable Mockito annotations is annotating the test class with @RunWith by specifying the MockitoJUnitRunner that does this task and also other useful things
     }
 
     // createAndSaveRefreshToken tests -----------------------------------------------
@@ -60,6 +61,10 @@ class RefreshTokenServiceUnitTest {
 
         RefreshToken result = refreshTokenService.createAndSaveRefreshToken(tPUserStub.getId());
 
+        Mockito.verify(tPUserRepository).getReferenceById(tPUserStub.getId());
+        Mockito.verifyNoMoreInteractions(tPUserRepository);
+        Mockito.verify(refreshTokenRepository).save(Mockito.any(RefreshToken.class));
+        Mockito.verifyNoMoreInteractions(refreshTokenRepository);
         assertThat(result.revoked).isFalse();
         assertThat(result.getOwner()).isEqualTo(tPUserStub);
     }

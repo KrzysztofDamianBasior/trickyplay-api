@@ -1,5 +1,6 @@
 package org.trickyplay.trickyplayapi.users.entities;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -7,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.trickyplay.trickyplayapi.BaseIntegrationTest;
 import org.trickyplay.trickyplayapi.users.enums.Role;
@@ -22,12 +25,19 @@ class TPUserIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private TestEntityManager entityManager; // TestEntityManager provides a subset of EntityManager methods that are useful for tests as well as helper methods for common testing tasks such as persist or find.
 
+    private PasswordEncoder passwordEncoder;
+
+    @BeforeEach
+    void setUp() {
+        passwordEncoder = NoOpPasswordEncoder.getInstance();
+    }
+
     @Test
     void twoUsersCanNotHaveTheSameName() {
         String username = "testUser";
         TPUser firstTPUser = TPUser.builder()
                 .name(username)
-                .password("123ASDasd")
+                .password(passwordEncoder.encode("123ASDasd"))
                 .role(Role.USER)
                 .refreshTokens(null)
                 .createdAt(LocalDateTime.now(ZoneOffset.UTC).minusDays(10))
@@ -36,7 +46,7 @@ class TPUserIntegrationTest extends BaseIntegrationTest {
 
         TPUser secondTPUser = TPUser.builder()
                 .name(username)
-                .password("123ASDasd")
+                .password(passwordEncoder.encode("123ASDasd"))
                 .role(Role.USER)
                 .refreshTokens(null)
                 .createdAt(LocalDateTime.now(ZoneOffset.UTC).minusDays(10))
