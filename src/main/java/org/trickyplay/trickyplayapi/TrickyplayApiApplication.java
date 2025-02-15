@@ -14,6 +14,15 @@ public class TrickyplayApiApplication {
 //		System.setProperty("server.port", "9090");
 
 		SpringApplication.run(TrickyplayApiApplication.class, args);
+		// System.out.println(System.getProperty("spring.profiles.active", "unknown profile- sth went wrong"));
+
+		// @Value("${spring.profiles.active:Unknown}")
+		// private String activeProfile;
+
+		// @Autowired Environment env; -offers:
+		// String[] getActiveProfiles(),
+		// String[] getDefaultProfiles()
+		// boolean acceptsProfiles(String... profiles)
 
 		//System.getenv(String name), System.getProperty(String key)
 		//Map<String, String> mapProperties = new HashMap<String, String>();
