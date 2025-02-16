@@ -21,10 +21,15 @@ import java.util.UUID;
 @Slf4j
 @Data
 public class RefreshTokenService {
-    @Value("${application.security.jwt.refresh-token-expiration}")
-    private long refreshExpiration;
     private final RefreshTokenRepository refreshTokenRepository;
     private final TPUserRepository userRepository;
+    private final long refreshExpiration;
+
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, TPUserRepository userRepository, @Value("${application.security.jwt.refresh-token-expiration}") long refreshExpiration) {
+        this.refreshExpiration = refreshExpiration;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.userRepository = userRepository;
+    }
 
     public RefreshToken createAndSaveRefreshToken(Long id) {
         RefreshToken refreshToken = RefreshToken.builder()

@@ -28,8 +28,7 @@ class RefreshTokenServiceUnitTest {
     void setUp() {
         refreshTokenRepository = Mockito.mock(RefreshTokenRepository.class);
         tPUserRepository = Mockito.mock(TPUserRepository.class);
-        refreshTokenService = new RefreshTokenService(refreshTokenRepository, tPUserRepository);
-        refreshTokenService.setRefreshExpiration(1L);
+        refreshTokenService = new RefreshTokenService(refreshTokenRepository, tPUserRepository, 5000L);
         // MockitoAnnotations.initMocks(this); // to enable Mockito annotations during test executions this static method has to be called, another way to enable Mockito annotations is annotating the test class with @RunWith by specifying the MockitoJUnitRunner that does this task and also other useful things
     }
 
