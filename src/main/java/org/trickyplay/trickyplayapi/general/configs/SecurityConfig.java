@@ -15,7 +15,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -28,7 +27,6 @@ import org.trickyplay.trickyplayapi.general.filters.JwtAuthenticationFilter;
 import org.trickyplay.trickyplayapi.general.handlers.UnauthorizedHandler;
 import org.trickyplay.trickyplayapi.users.enums.Permission;
 import org.trickyplay.trickyplayapi.users.enums.Role;
-import org.trickyplay.trickyplayapi.users.repositories.TPUserRepository;
 import org.trickyplay.trickyplayapi.users.services.TPUserDetailsService;
 
 import java.util.Arrays;
@@ -48,7 +46,7 @@ import java.util.Arrays;
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UnauthorizedHandler unauthorizedHandler; // JwtAuthEntryPoint
-    private final TPUserRepository tPUserRepository;
+    private final TPUserDetailsService tpUserDetailsService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -61,15 +59,15 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return new TPUserDetailsService(tPUserRepository);
-    }
+//    @Bean
+//    public UserDetailsService userDetailsService() {
+//        return new TPUserDetailsService(tPUserRepository);
+//    }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService());
+        authenticationProvider.setUserDetailsService(tpUserDetailsService);
         authenticationProvider.setPasswordEncoder(passwordEncoder());
         return authenticationProvider;
     }
