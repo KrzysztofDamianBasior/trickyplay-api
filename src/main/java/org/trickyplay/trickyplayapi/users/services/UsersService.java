@@ -18,6 +18,8 @@ import org.trickyplay.trickyplayapi.users.enums.Role;
 import org.trickyplay.trickyplayapi.users.records.UsersPageArgs;
 import org.trickyplay.trickyplayapi.users.repositories.TPUserRepository;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -72,6 +74,7 @@ public class UsersService {
             throw new OperationNotAllowedException("You cannot modify the permissions of the admin account");
         }
         user.setRole(Role.ADMIN);
+        user.setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
         TPUser savedUser = userRepository.save(user);
         return UserUtils.mapToTPUserPublicInfoDTO(savedUser);
     }
@@ -83,6 +86,7 @@ public class UsersService {
             throw new OperationNotAllowedException("You can't ban an admin");
         }
         user.setRole(Role.BANNED);
+        user.setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
         TPUser savedUser = userRepository.save(user);
         return UserUtils.mapToTPUserPublicInfoDTO(savedUser);
     }
@@ -94,6 +98,7 @@ public class UsersService {
             throw new OperationNotAllowedException("You cannot modify the permissions of the admin account");
         }
         user.setRole(Role.USER);
+        user.setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
         TPUser savedUser = userRepository.save(user);
         return UserUtils.mapToTPUserPublicInfoDTO(savedUser);
     }
